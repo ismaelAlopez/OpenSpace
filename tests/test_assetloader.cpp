@@ -40,7 +40,7 @@
 #include <memory>
 
 TEST_CASE("AssetLoader: Assertion", "[assetloader]") {
-    openspace::Scene scene(std::make_unique<openspace::SingleThreadedSceneInitializer>());
+    openspace::Scene scene(std::make_unique<openspace::SceneInitializer>(1u));
     ghoul::lua::LuaState* state = openspace::global::scriptEngine->luaState();
     openspace::AssetManager assetLoader(
         state,
@@ -52,7 +52,7 @@ TEST_CASE("AssetLoader: Assertion", "[assetloader]") {
 }
 
 TEST_CASE("AssetLoader: Basic Export Import", "[assetloader]") {
-    openspace::Scene scene(std::make_unique<openspace::SingleThreadedSceneInitializer>());
+    openspace::Scene scene(std::make_unique<openspace::SceneInitializer>(1u));
     ghoul::lua::LuaState* state = openspace::global::scriptEngine->luaState();
     openspace::AssetManager assetLoader(
         state,
@@ -63,7 +63,7 @@ TEST_CASE("AssetLoader: Basic Export Import", "[assetloader]") {
 }
 
 TEST_CASE("AssetLoader: Asset Functions", "[assetloader]") {
-    openspace::Scene scene(std::make_unique<openspace::SingleThreadedSceneInitializer>());
+    openspace::Scene scene(std::make_unique<openspace::SceneInitializer>(1u));
     ghoul::lua::LuaState* state = openspace::global::scriptEngine->luaState();
     openspace::AssetManager assetLoader(
         state,

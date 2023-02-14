@@ -691,10 +691,10 @@ void OpenSpaceEngine::loadAssets() {
             4u
         );
         unsigned int nThreads = nAvailableThreads == 0 ? 2 : nAvailableThreads;
-        sceneInitializer = std::make_unique<MultiThreadedSceneInitializer>(nThreads);
+        sceneInitializer = std::make_unique<SceneInitializer>(nThreads);
     }
     else {
-        sceneInitializer = std::make_unique<SingleThreadedSceneInitializer>();
+        sceneInitializer = std::make_unique<SceneInitializer>(1u);
     }
 
     _scene = std::make_unique<Scene>(std::move(sceneInitializer));
