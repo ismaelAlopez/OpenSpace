@@ -42,10 +42,6 @@ using nlohmann::json;
 
 namespace {
     constexpr std::string_view _loggerCat = "GetPropertyTopic";
-    constexpr std::string_view AllPropertiesValue = "__allProperties";
-    constexpr std::string_view AllNodesValue = "__allNodes";
-    constexpr std::string_view AllScreenSpaceRenderablesValue =
-        "__screenSpaceRenderables";
     constexpr std::string_view RootPropertyOwner = "__rootOwner";
 } // namespace
 
@@ -55,18 +51,7 @@ void GetPropertyTopic::handleJson(const nlohmann::json& json) {
     std::string requestedKey = json.at("property").get<std::string>();
     LDEBUG("Getting property '" + requestedKey + "'...");
     nlohmann::json response;
-    if (requestedKey == AllPropertiesValue) {
-        response = allProperties();
-    }
-    else if (requestedKey == AllNodesValue) {
-        response = wrappedPayload(sceneGraph()->allSceneGraphNodes());
-    }
-    else if (requestedKey == AllScreenSpaceRenderablesValue) {
-        response = wrappedPayload({
-            { "value", global::renderEngine->screenSpaceRenderables() }
-        });
-    }
-    else if (requestedKey == RootPropertyOwner) {
+    if (requestedKey == RootPropertyOwner) {
         response = wrappedPayload(global::rootPropertyOwner);
     }
     else {
