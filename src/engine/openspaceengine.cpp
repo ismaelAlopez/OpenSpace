@@ -24,6 +24,7 @@
 
 #include <openspace/engine/openspaceengine.h>
 
+#include <modules/server/servermodule.h>
 #include <openspace/openspace.h>
 #include <openspace/camera/camera.h>
 #include <openspace/documentation/core_registration.h>
@@ -1310,9 +1311,10 @@ void OpenSpaceEngine::postDraw() {
     }
     global::eventEngine->triggerActions();
     while (e) {
-        // @TODO (abock, 2021-08-25) Need to send all events to a topic to be sent out to
-        // others
-
+        ghoul::Dictionary params = toParameter(*e);
+        global::moduleEngine->module<ServerModule>()->passEventToTopics(
+            *e, params
+        );
         e = e->next;
     }
 

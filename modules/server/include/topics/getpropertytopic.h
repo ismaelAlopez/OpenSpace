@@ -40,6 +40,8 @@ public:
 private:
     nlohmann::json allProperties();
     nlohmann::json propertyFromKey(const std::string& key);
+    bool _isSubscribed = false;
+    int _eventCallbackHandle = -1;
 };
 
 } // namespace openspace

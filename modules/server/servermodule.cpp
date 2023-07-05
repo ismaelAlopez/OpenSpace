@@ -23,7 +23,6 @@
  ****************************************************************************************/
 
 #include <modules/server/servermodule.h>
-
 #include <modules/globebrowsing/globebrowsingmodule.h>
 #include <modules/server/include/serverinterface.h>
 #include <modules/server/include/connection.h>
@@ -31,6 +30,7 @@
 #include <openspace/engine/globalscallbacks.h>
 #include <openspace/engine/globals.h>
 #include <openspace/engine/windowdelegate.h>
+#include <openspace/events/event.h> 
 #include <ghoul/fmt.h>
 #include <ghoul/io/socket/socket.h>
 #include <ghoul/io/socket/tcpsocketserver.h>
@@ -55,7 +55,7 @@ ServerModule::ServerModule()
     global::callback::preSync->emplace_back([this]() {
         // Trigger callbacks
         using K = CallbackHandle;
-        using V = CallbackFunction;
+        using V = CallbackFunctionPreSync;
         for (const std::pair<K, V>& it : _preSyncCallbacks) {
             it.second(); // call function
         }
@@ -234,9 +234,9 @@ void ServerModule::consumeMessages() {
     }
 }
 
-ServerModule::CallbackHandle ServerModule::addPreSyncCallback(CallbackFunction cb)
+ServerModule::CallbackHandle ServerModule::addPreSyncCallback(CallbackFunctionPreSync cb)
 {
-    CallbackHandle handle = _nextCallbackHandle++;
+    CallbackHandle handle = _nextPresyncCallbackHandle++;
     _preSyncCallbacks.emplace_back(handle, std::move(cb));
     return handle;
 }
@@ -245,7 +245,7 @@ void ServerModule::removePreSyncCallback(CallbackHandle handle) {
     const auto it = std::find_if(
         _preSyncCallbacks.begin(),
         _preSyncCallbacks.end(),
-        [handle](const std::pair<CallbackHandle, CallbackFunction>& cb) {
+        [handle](const std::pair<CallbackHandle, CallbackFunctionPreSync>& cb) {
             return cb.first == handle;
         }
     );
@@ -256,6 +256,39 @@ void ServerModule::removePreSyncCallback(CallbackHandle handle) {
     );
 
     _preSyncCallbacks.erase(it);
+}
+
+ServerModule::CallbackHandle ServerModule::addEventCallback(CallbackFunctionEvent cb)
+{
+    CallbackHandle handle = _nextEventCallbackHandle++;
+    _eventCallbacks.emplace_back(handle, std::move(cb));
+    return handle;
+}
+
+void ServerModule::removeEventCallback(CallbackHandle handle) {
+    const auto it = std::find_if(
+        _eventCallbacks.begin(),
+        _eventCallbacks.end(),
+        [handle](const std::pair<CallbackHandle, CallbackFunctionEvent>& cb) {
+            return cb.first == handle;
+        }
+    );
+
+    ghoul_assert(
+        it != _eventCallbacks.end(),
+        "handle must be a valid callback handle"
+    );
+
+    _eventCallbacks.erase(it);
+}
+
+
+void ServerModule::passEventToTopics(const events::Event& event, 
+    const ghoul::Dictionary& params) const 
+{
+    for (std::pair<CallbackHandle, CallbackFunctionEvent> f : _eventCallbacks) {
+        f.second(event, params);
+    }
 }
 
 } // namespace openspace

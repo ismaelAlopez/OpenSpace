@@ -28,7 +28,9 @@
 #include <modules/server/include/jsonconverters.h>
 #include <modules/volume/transferfunctionhandler.h>
 #include <openspace/engine/globals.h>
+#include <openspace/engine/moduleengine.h>
 #include <openspace/engine/windowdelegate.h>
+#include <openspace/events/event.h> 
 #include <openspace/navigation/navigationhandler.h>
 #include <openspace/network/parallelpeer.h>
 #include <openspace/query/query.h>
@@ -36,6 +38,7 @@
 #include <openspace/rendering/renderengine.h>
 #include <openspace/rendering/screenspacerenderable.h>
 #include <openspace/scene/scene.h>
+#include <modules/server/servermodule.h>
 #include <ghoul/logging/logmanager.h>
 
 using nlohmann::json;
@@ -58,6 +61,17 @@ void GetPropertyTopic::handleJson(const nlohmann::json& json) {
         response = propertyFromKey(requestedKey);
     }
     _connection->sendJson(response);
+
+    if (!_isSubscribed) {
+        ServerModule* module = global::moduleEngine->module<ServerModule>();
+        _eventCallbackHandle = module->addEventCallback(
+            [this](const events::Event& e, const ghoul::Dictionary& d) {
+                // TODO: handle events
+                LINFO("Event sent to property topic");
+            }
+        );
+        _isSubscribed = true;
+    }
 }
 
 bool GetPropertyTopic::isDone() const {

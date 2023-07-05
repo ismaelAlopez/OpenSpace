@@ -28,7 +28,7 @@
 #include <openspace/util/openspacemodule.h>
 
 #include <modules/server/include/serverinterface.h>
-
+#include <openspace/events/event.h> 
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -50,7 +50,8 @@ class ServerModule : public OpenSpaceModule {
 public:
     static constexpr const char* Name = "Server";
     using CallbackHandle = int;
-    using CallbackFunction = std::function<void()>;
+    using CallbackFunctionPreSync = std::function<void()>;
+    using CallbackFunctionEvent = std::function<void(const events::Event&, const ghoul::Dictionary&)>;
 
     ServerModule();
     virtual ~ServerModule() override;
@@ -59,8 +60,13 @@ public:
 
     int skyBrowserUpdateTime() const;
 
-    CallbackHandle addPreSyncCallback(CallbackFunction cb);
+    CallbackHandle addPreSyncCallback(CallbackFunctionPreSync cb);
     void removePreSyncCallback(CallbackHandle handle);
+
+    CallbackHandle addEventCallback(CallbackFunctionEvent cb);
+    void removeEventCallback(CallbackHandle handle);
+
+    void passEventToTopics(const events::Event& event, const ghoul::Dictionary& params) const;
 
 protected:
     void internalInitialize(const ghoul::Dictionary& configuration) override;
@@ -86,8 +92,10 @@ private:
     int _skyBrowserUpdateTime = 100;
 
     // Callbacks for tiggering topic
-    int _nextCallbackHandle = 0;
-    std::vector<std::pair<CallbackHandle, CallbackFunction>> _preSyncCallbacks;
+    int _nextPresyncCallbackHandle = 0;
+    int _nextEventCallbackHandle = 0;
+    std::vector<std::pair<CallbackHandle, CallbackFunctionPreSync>> _preSyncCallbacks;
+    std::vector<std::pair<CallbackHandle, CallbackFunctionEvent>> _eventCallbacks;
 };
 
 } // namespace openspace
