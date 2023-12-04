@@ -105,14 +105,11 @@ void testReadingHorizons(HorizonsType type, std::filesystem::path filePath,
                        const double t1, const double x1, const double y1, const double z1,
                        const double t2, const double x2, const double y2, const double z2)
 {
-    // Get files and make sure they exist
-    std::filesystem::path kernel = absPath("${TESTDIR}/horizonsTest/naif0012.tls");
-    CHECK(std::filesystem::is_regular_file(kernel));
+    // Get file and make sure it exist
     CHECK(std::filesystem::is_regular_file(filePath));
 
     // Initialize SpiceManager and load leap second kernel
     SpiceManager::initialize();
-    openspace::SpiceManager::ref().loadKernel(kernel.string());
 
     // Read the file
     HorizonsResult result = readHorizonsFile(filePath);
@@ -142,7 +139,6 @@ void testReadingHorizons(HorizonsType type, std::filesystem::path filePath,
     CHECK(data[2].position.z == Catch::Approx(z2));
 
     // Clean up
-    openspace::SpiceManager::ref().unloadKernel(kernel.string());
     openspace::SpiceManager::deinitialize();
 }
 #endif // OPENSPACE_MODULE_SPACE_ENABLED
