@@ -45,11 +45,6 @@ namespace {
     // In this testclass only a handset of the testfunctions require a single kernel.
     // The remaining methods rely on multiple kernels, loaded as a SPICE 'meta-kernel'
     void loadMetaKernel() {
-        const int k1 = openspace::SpiceManager::ref().loadKernel(
-            absPath("${TESTDIR}/SpiceTest/spicekernels/naif0008.tls").string()
-        );
-        CHECK(k1 == 1);
-
         const int k2 = openspace::SpiceManager::ref().loadKernel(
             absPath("${TESTDIR}/SpiceTest/spicekernels/cas00084.tsc").string()
         );
@@ -91,19 +86,11 @@ namespace {
         CHECK(k9 == 9);
     }
 
-    int loadLSKKernel() {
-        int kernelID = openspace::SpiceManager::ref().loadKernel(
-            absPath("${TESTDIR}/SpiceTest/spicekernels/naif0008.tls").string()
-        );
-        CHECK(kernelID == 1);
-        return kernelID;
-    }
-
     int loadPCKKernel() {
         int kernelID = openspace::SpiceManager::ref().loadKernel(
             absPath("${TESTDIR}/SpiceTest/spicekernels/cpck05Mar2004.tpc").string()
         );
-        CHECK(kernelID == 1);
+        CHECK(kernelID == 2);
         return kernelID;
     }
 } // namespace
@@ -111,11 +98,11 @@ namespace {
 TEST_CASE("SpiceManager: Load Single Kernel", "[spicemanager]") {
     openspace::SpiceManager::initialize();
 
-    loadLSKKernel();
-    // naif0008.tls is a text file, check if loaded.
+    loadPCKKernel();
+    // cpck05Mar2004.tpc is a text file, check if loaded.
     SpiceBoolean found;
     kdata_c(
-        0,
+        1,
         "text",
         FILLEN,
         TYPLEN,
@@ -135,11 +122,11 @@ TEST_CASE("SpiceManager: Load Single Kernel", "[spicemanager]") {
 TEST_CASE("SpiceManager: Unload Kernel String", "[spicemanager]") {
     openspace::SpiceManager::initialize();
 
-    loadLSKKernel();
-    // naif0008.tls is a text file, check if loaded.
+    loadPCKKernel();
+    // cpck05Mar2004.tpc is a text file, check if loaded.
     SpiceBoolean found;
     kdata_c(
-        0,
+        1,
         "text",
         FILLEN,
         TYPLEN,
@@ -154,12 +141,12 @@ TEST_CASE("SpiceManager: Unload Kernel String", "[spicemanager]") {
 
     // unload using string keyword
     openspace::SpiceManager::ref().unloadKernel(
-        absPath("${TESTDIR}/SpiceTest/spicekernels/naif0008.tls").string()
+        absPath("${TESTDIR}/SpiceTest/spicekernels/cpck05Mar2004.tpc").string()
     );
 
     found = SPICEFALSE;
     kdata_c(
-        0,
+        1,
         "text",
         FILLEN,
         TYPLEN,
@@ -178,11 +165,11 @@ TEST_CASE("SpiceManager: Unload Kernel String", "[spicemanager]") {
 TEST_CASE("SpiceManager: Unload Kernel Integer", "[spicemanager]") {
     openspace::SpiceManager::initialize();
 
-    int kernelID = loadLSKKernel();
-    // naif0008.tls is a text file, check if loaded.
+    int kernelID = loadPCKKernel();
+    // cpck05Mar2004.tpc is a text file, check if loaded.
     SpiceBoolean found;
     kdata_c(
-        0,
+        1,
         "text",
         FILLEN,
         TYPLEN,
@@ -200,7 +187,7 @@ TEST_CASE("SpiceManager: Unload Kernel Integer", "[spicemanager]") {
 
     found = SPICEFALSE;
     kdata_c(
-        0,
+        1,
         "text",
         FILLEN,
         TYPLEN,
@@ -288,8 +275,6 @@ TEST_CASE("SpiceManager: Get Value From ID ND", "[spicemanager]") {
 
 TEST_CASE("SpiceManager: String To Ephemeris Time", "[spicemanager]") {
     openspace::SpiceManager::initialize();
-
-    loadLSKKernel();
 
     double ephemerisTime = -1.0;
     double control_ephemerisTime = 0.0;
