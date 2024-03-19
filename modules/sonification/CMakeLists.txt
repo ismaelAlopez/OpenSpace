@@ -33,6 +33,7 @@ set(HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/solarsonification.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/sonificationbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/timesonification.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/timetravelsonification.h
 )
 source_group("Header Files" FILES ${HEADER_FILES})
 
@@ -47,6 +48,7 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/solarsonification.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/sonificationbase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/timesonification.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/timetravelsonification.cpp
 )
 source_group("Source Files" FILES ${SOURCE_FILES})
 

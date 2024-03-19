@@ -181,6 +181,12 @@ private:
         std::string identifier;
         std::vector<Moon> moons;
 
+        // for the ugly speed code
+        double distance0;
+        double distance1;
+        double speed;
+        bool direction;
+
     private:
         // Distance, horizontal angle, vertical angle
         std::vector<double> distances = std::vector<double>(NumSamples, 0.0);

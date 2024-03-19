@@ -28,6 +28,7 @@
 
 #include <modules/sonification/sonificationmodule.h>
 #include <openspace/engine/globals.h>
+#include <openspace/engine/windowdelegate.h>
 #include <openspace/engine/moduleengine.h>
 #include <openspace/navigation/navigationhandler.h>
 #include <openspace/navigation/orbitalnavigator.h>
@@ -405,6 +406,29 @@ void PlanetsSonification::sendSettings(int planetIndex) {
 
     // Distance
     data.push_back(_planets[planetIndex].distance());
+
+    // Ugly speed code
+    // Every 27th frame the distance is updated, at least according to SuperCollider.
+    // We calculate speed if the data has updated, otherwise send the old speed.
+    // Can lead to bad behaviour due to imprecision in the if-case when comparing 2 doubles
+    // .distance() is calculated as median so a comparison like this works anyway?
+    // averagedeltatime or just deltatime?
+    if(_planets[planetIndex].distance() != _planets[planetIndex].distance1) {
+    _planets[planetIndex].distance1 = _planets[planetIndex].distance();
+
+    // If the distance is increasing, heading away from earth, otherwise towards. Buffer of 1m to avoid jitter
+    if (abs(_planets[planetIndex].distance1 - _planets[planetIndex].distance0) > 0.001 && _planets[planetIndex].distance1 > _planets[planetIndex].distance0) {
+        _planets[planetIndex].direction = 1;
+    }
+    else {
+        _planets[planetIndex].direction = 0;
+    }
+
+    _planets[planetIndex].speed = abs((_planets[planetIndex].distance1 - _planets[planetIndex].distance0) / global::windowDelegate->deltaTime());
+    _planets[planetIndex].distance0 = _planets[planetIndex].distance1;
+    }
+    data.push_back(_planets[planetIndex].speed);
+    data.push_back(_planets[planetIndex].direction);
 
     // Horizontal Angle
     data.push_back(_planets[planetIndex].HAngle());
