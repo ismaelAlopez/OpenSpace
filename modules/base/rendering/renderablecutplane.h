@@ -25,7 +25,31 @@
 #ifndef __OPENSPACE_MODULE_BASE___RENDERABLECUTPLANE___H__
 #define __OPENSPACE_MODULE_BASE___RENDERABLECUTPLANE___H__
 
+
+#include <openspace/rendering/renderable.h>
 #include <modules/base/rendering/renderableplane.h>
+#include <modules/kameleonvolume/kameleonvolumereader.h>
+#include <modules/kameleon/ext/kameleon/src/ccmc/FileReader.h>
+#include <modules/kameleon/ext/kameleon/src/ccmc/GeneralFileReader.h>
+#include <modules/kameleon/ext/kameleon/src/ccmc/Kameleon.h>
+#include <modules/kameleon/ext/kameleon/src/ccmc/Interpolator.h>
+
+
+#include <modules/base/basemodule.h>
+#include <openspace/documentation/documentation.h>
+#include <openspace/documentation/verifier.h>
+
+
+#include <ghoul/glm.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace ccmc {
+    class Attribute;
+    class Interpolator;
+    class Kameleon;
+}
 
 namespace ghoul::filesystem { class File; }
 namespace ghoul::opengl { class Texture; }
@@ -35,7 +59,7 @@ namespace openspace {
 struct RenderData;
 struct UpdateData;
 
-namespace documentation { struct Documentation; }
+//namespace documentation { struct Documentation; }
 
 class RenderableCutPlane : public RenderablePlane {
 public:
@@ -51,17 +75,11 @@ public:
     static documentation::Documentation Documentation();
 
 protected:
-    virtual void bindTexture() override;
 
 private:
-    ghoul::opengl::Texture* loadTexture() const;
-    void extractTriggerTimesFromFileNames();
-    bool extractMandatoryInfoFromDictionary();
 
-    properties::StringProperty _sourceFolder;
-    ghoul::opengl::Texture* _texture = nullptr;
-    bool _isLoadingLazily = false;
-    bool _textureIsDirty = false;
+    std::unique_ptr<ccmc::Kameleon> _kameleon;
+    std::unique_ptr<ccmc::Interpolator> _interpolator;
 };
 
 } // namespace openspace

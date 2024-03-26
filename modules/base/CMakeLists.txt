@@ -49,6 +49,7 @@ set(HEADER_FILES
   rendering/pointcloud/renderablepolygoncloud.h
   rendering/pointcloud/sizemappingcomponent.h
   rendering/renderablecartesianaxes.h
+  rendering/renderablecutplane.h
   rendering/renderabledisc.h
   rendering/renderablelabel.h
   rendering/renderablemodel.h
@@ -112,6 +113,7 @@ set(SOURCE_FILES
   rendering/pointcloud/renderablepolygoncloud.cpp
   rendering/pointcloud/sizemappingcomponent.cpp
   rendering/renderablecartesianaxes.cpp
+  rendering/renderablecutplane.cpp
   rendering/renderabledisc.cpp
   rendering/renderablelabel.cpp
   rendering/renderablemodel.cpp
