@@ -33,6 +33,7 @@
 #include <modules/kameleon/ext/kameleon/src/ccmc/GeneralFileReader.h>
 #include <modules/kameleon/ext/kameleon/src/ccmc/Kameleon.h>
 #include <modules/kameleon/ext/kameleon/src/ccmc/Interpolator.h>
+#include <modules/kameleon/include/kameleonhelper.h>
 
 
 #include <modules/base/basemodule.h>
@@ -44,6 +45,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace ccmc {
     class Attribute;
@@ -59,7 +61,7 @@ namespace openspace {
 struct RenderData;
 struct UpdateData;
 
-//namespace documentation { struct Documentation; }
+namespace documentation { struct Documentation; }
 
 class RenderableCutPlane : public RenderablePlane {
 public:
@@ -77,6 +79,9 @@ public:
 protected:
 
 private:
+    std::filesystem::path _inputPath;
+    // What data property to render
+    std::string _dataProperty;
 
     std::unique_ptr<ccmc::Kameleon> _kameleon;
     std::unique_ptr<ccmc::Interpolator> _interpolator;

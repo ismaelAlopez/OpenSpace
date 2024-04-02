@@ -23,69 +23,30 @@
  ****************************************************************************************/
 
 #include <modules/base/rendering/renderablecutplane.h>
-
+#include <modules/kameleonvolume/kameleonvolumereader.h>
+#include <ghoul/filesystem/filesystem.h>
 #include <filesystem>
 
-
 namespace {
-constexpr openspace::properties::Property::PropertyInfo AxisInfo = {
-    "Axis",
-    "The x, y or z axis",
-    "Axis to cut the volume on",
-    openspace::properties::Property::Visibility::User
-};
-constexpr openspace::properties::Property::PropertyInfo CutValueInfo = {
-    "CutValue",
-    "A value within the volume dimension",
-    "A value to cut the plane on within the dimension of the selected axis",
-    openspace::properties::Property::Visibility::User
-};
-constexpr openspace::properties::Property::PropertyInfo ColorTablePathsInfo = {
-    "ColorTablePaths",
-    "A local varibale of a local color transfer function",
-    "A list of paths to transferfunction .txt files containing color tables used for colorizing the cutplane according to different data properties",
-    openspace::properties::Property::Visibility::User
-};
-constexpr openspace::properties::Property::PropertyInfo ColorTableRangesInfo = {
-    "ColorTableRanges",
-    "Values of a range",
-    "List of ranges for which their corresponding data property values will be colorized by. Should be entered as {min value, max value} per range",
-    openspace::properties::Property::Visibility::User
-};
-constexpr openspace::properties::Property::PropertyInfo DataPropertyInfo = {
-    "DataProperty",
-    "Name of the data property",
-    "Data property to color the cutplane by",
-    openspace::properties::Property::Visibility::User
-};
 constexpr openspace::properties::Property::PropertyInfo FilePathInfo = {
     "FilePath",
     "Filepath to the file to create texture from",
     " ",
     openspace::properties::Property::Visibility::User
 };
-constexpr openspace::properties::Property::PropertyInfo SizeInfo = {
-    "Size",
-    "Size (in meters)",
-    "This value specifies the size unit",
-    openspace::properties::Property::Visibility::User
+
+constexpr openspace::properties::Property::PropertyInfo DataPropertyInfo = {
+        "DataProperty",
+        "Name of the data property",
+        "Data property to color the cutplane by",
+        openspace::properties::Property::Visibility::User
 };
 
 struct [[codegen::Dictionary(RenderableCutPlane)]] Parameters {
-    // [[codegen::verbatim(AxisInfo.description)]]
-    std::string axis;
-    // [[codegen::verbatim(CutValueInfo.description)]]
-    float cutValue;
+    // [[codegen::verbatim(FilePathInfo.description)]]
+    std::filesystem::path input;
     // [[codegen::verbatim(DataPropertyInfo.description)]]
     std::string dataProperty;
-    // [[codegen::verbatim(FilePathInfo.description)]]
-    std::string filePath;
-    // [[codegen::verbatim(SizeInfo.description)]]
-    std::variant<float, glm::vec3> size;
-    // [[codegen::verbatim(ColorTablePathsInfo.description)]]
-    std::optional<std::vector<std::string>> colorTablePaths;
-    // [[codegen::verbatim(ColorTableRangesInfo.description)]]
-    std::optional<std::vector<glm::vec2>> colorTableRanges;
 };
 #include "renderablecutplane_codegen.cpp"
 } // namespace
@@ -100,11 +61,13 @@ documentation::Documentation RenderableCutPlane::Documentation() {
     );
 }
 
-
 RenderableCutPlane::RenderableCutPlane(const ghoul::Dictionary& dictionary)
     : RenderablePlane(dictionary)
 {
+    const Parameters p = codegen::bake<Parameters>(dictionary);
 
+    _inputPath = absPath(p.input.string());
+    _dataProperty = p.dataProperty;
 }
 
 void RenderableCutPlane::initialize() {
@@ -113,19 +76,35 @@ void RenderableCutPlane::initialize() {
 
 void RenderableCutPlane::initializeGL() {
 
+    //kameleonvolume::KameleonVolumeReader volumeReader(_inputPath.string());
+
+    std::string _path = "C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf";
+
+    std::unique_ptr<ccmc::Kameleon> kameleon = kameleonHelper::createKameleonObject(
+        _inputPath.string()
+    );
+    
+
     if (!std::filesystem::is_regular_file(
-        "C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf")) {
+        _inputPath)) {
         throw ghoul::FileNotFoundError(
-            "C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf");
+            _inputPath.string());
     }
 
-    const long status = _kameleon->open("C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf");
+    long status = kameleon->open(_inputPath.string());
     if (status != ccmc::FileReader::OK) {
         throw ghoul::RuntimeError(fmt::format(
             "Failed to open file '{}' with Kameleon",
-            "C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf"
+            _inputPath
         ));
     }
+
+    std::cout << "Model name: " << kameleon->getModelName() << std::endl;
+    std::cout << "Filename: " << kameleon->getCurrentFilename() << std::endl;
+    std::cout << "Number of variables: " << kameleon->getNumberOfVariables() << std::endl;
+    std::cout << "Number of variable attributes: " << kameleon->getNumberOfVariableAttributes() << std::endl;
+    std::cout << "Current time: " << kameleon->getCurrentTime() << std::endl;
+
 
     //long status;
     //status = _kameleon->open("C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf");
@@ -146,9 +125,5 @@ void RenderableCutPlane::render(const RenderData& data, RendererTasks& t) {
 void RenderableCutPlane::update(const UpdateData& data) {
 
 }
-
-
-
-
 
 } // namespace openspace
