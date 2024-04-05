@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -29,6 +29,7 @@
 #include <openspace/util/spicemanager.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
+#include <ghoul/misc/defer.h>
 
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
 #include <modules/space/horizonsfile.h>
@@ -45,10 +46,10 @@ struct HorizonsTestData {
 // Avoid repetitive code by using these functions
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
 void testHorizonsAnswer(const HorizonsTestData& data, HorizonsType type,
-                        std::filesystem::path filePath,
+                        const std::filesystem::path& filePath,
                         HorizonsResultCode expectedAnswerCode)
 {
-    std::string url = constructHorizonsUrl(
+    const std::string url = constructHorizonsUrl(
         type,
         data.target,
         data.observer,
@@ -57,7 +58,7 @@ void testHorizonsAnswer(const HorizonsTestData& data, HorizonsType type,
         data.step,
         data.unit
     );
-    json answer = sendHorizonsRequest(url, filePath);
+    const json answer = sendHorizonsRequest(url, filePath);
     HorizonsResultCode code = isValidHorizonsAnswer(answer);
     CHECK(code == expectedAnswerCode);
 
@@ -67,12 +68,12 @@ void testHorizonsAnswer(const HorizonsTestData& data, HorizonsType type,
 }
 
 void testHorizonsAnswerAndResult(const HorizonsTestData& data, HorizonsType type,
-                                 std::filesystem::path filePath,
+                                 const std::filesystem::path& filePath,
                                  HorizonsResultCode expectedAnswerCode,
                                  HorizonsResultCode expectedResultCode,
                                  bool shouldDeleteFile = true)
 {
-    std::string url = constructHorizonsUrl(
+    const std::string url = constructHorizonsUrl(
         type,
         data.target,
         data.observer,
@@ -89,7 +90,7 @@ void testHorizonsAnswerAndResult(const HorizonsTestData& data, HorizonsType type
     auto result = answer.find("result");
     CHECK(result != answer.end());
 
-    HorizonsFile horizonsFile(filePath, *result);
+    const HorizonsFile horizonsFile(filePath, *result);
     HorizonsResultCode resultCode = isValidHorizonsFile(horizonsFile.file());
     CHECK(resultCode == expectedResultCode);
 
@@ -100,7 +101,7 @@ void testHorizonsAnswerAndResult(const HorizonsTestData& data, HorizonsType type
     }
 }
 
-void testReadingHorizons(HorizonsType type, std::filesystem::path filePath,
+void testReadingHorizons(HorizonsType type, const std::filesystem::path& filePath,
                        const double t0, const double x0, const double y0, const double z0,
                        const double t1, const double x1, const double y1, const double z1,
                        const double t2, const double x2, const double y2, const double z2)
@@ -109,7 +110,9 @@ void testReadingHorizons(HorizonsType type, std::filesystem::path filePath,
     CHECK(std::filesystem::is_regular_file(filePath));
 
     // Initialize SpiceManager and load leap second kernel
+    // and make sure it is always deinitialized after this scope
     SpiceManager::initialize();
+    defer{ openspace::SpiceManager::deinitialize(); };
 
     // Read the file
     HorizonsResult result = readHorizonsFile(filePath);
@@ -137,9 +140,6 @@ void testReadingHorizons(HorizonsType type, std::filesystem::path filePath,
     CHECK(data[2].position.x == Catch::Approx(x2));
     CHECK(data[2].position.y == Catch::Approx(y2));
     CHECK(data[2].position.z == Catch::Approx(z2));
-
-    // Clean up
-    openspace::SpiceManager::deinitialize();
 }
 #endif // OPENSPACE_MODULE_SPACE_ENABLED
 
@@ -165,8 +165,10 @@ TEST_CASE("HorizonsFile: File size too large", "[horizonsfile]") {
     data.stop = "2022-07-01 00:00:00";
     data.step = "1";
     data.unit = "m";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_1.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorSize;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_1.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorSize;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -187,8 +189,10 @@ TEST_CASE("HorizonsFile: Time steps too large", "[horizonsfile]") {
     data.stop = "2022-07-01 00:00:00";
     data.step = "1111111111";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_2.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorSpan;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_2.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorSpan;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -209,8 +213,10 @@ TEST_CASE("HorizonsFile: Outside available time range", "[horizonsfile]") {
     data.stop = "2000-05-19 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_3.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorTimeRange;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_3.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorTimeRange;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -231,16 +237,18 @@ TEST_CASE("HorizonsFile: No observer", "[horizonsfile]") {
     data.stop = "2022-05-19 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_4.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorNoObserver;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_4.hrz"
+    );
+    const HorizonsResultCode answer = HorizonsResultCode::ErrorNoObserver;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
-    testHorizonsAnswer(data, type, filePath, expectedAnswerCode);
+    testHorizonsAnswer(data, type, filePath, answer);
 
     // Test Observer format
     type = HorizonsType::Observer;
-    testHorizonsAnswer(data, type, filePath, expectedAnswerCode);
+    testHorizonsAnswer(data, type, filePath, answer);
 #endif // OPENSPACE_MODULE_SPACE_ENABLED
 }
 
@@ -253,12 +261,14 @@ TEST_CASE("HorizonsFile: Observer and target same", "[horizonsfile]") {
     data.stop = "2022-05-19 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_5.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::ErrorObserverTargetSame;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_5.hrz"
+    );
+    const HorizonsResultCode answer = HorizonsResultCode::ErrorObserverTargetSame;
 
     // This test is only for Observer type format
-    HorizonsType type = HorizonsType::Observer;
-    testHorizonsAnswer(data, type, filePath, expectedAnswerCode);
+    const HorizonsType type = HorizonsType::Observer;
+    testHorizonsAnswer(data, type, filePath, answer);
 #endif // OPENSPACE_MODULE_SPACE_ENABLED
 }
 
@@ -271,16 +281,18 @@ TEST_CASE("HorizonsFile: Multiple observer stations", "[horizonsfile]") {
     data.stop = "2022-05-19 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_6.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::MultipleObserverStations;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_6.hrz"
+    );
+    const HorizonsResultCode answer = HorizonsResultCode::MultipleObserverStations;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
-    testHorizonsAnswer(data, type, filePath, expectedAnswerCode);
+    testHorizonsAnswer(data, type, filePath, answer);
 
     // Test Observer format
     type = HorizonsType::Observer;
-    testHorizonsAnswer(data, type, filePath, expectedAnswerCode);
+    testHorizonsAnswer(data, type, filePath, answer);
 #endif // OPENSPACE_MODULE_SPACE_ENABLED
 }
 
@@ -295,9 +307,11 @@ TEST_CASE("HorizonsFile: Multiple observers", "[horizonsfile]") {
     data.stop = "2022-05-19 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_7.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleObserver;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_7.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleObserver;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -330,9 +344,11 @@ TEST_CASE("HorizonsFile: No target", "[horizonsfile]") {
     data.stop = "2022-05-20 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_8.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::ErrorNoTarget;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_8.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::ErrorNoTarget;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -365,9 +381,11 @@ TEST_CASE("HorizonsFile: Multiple targets (major bodies)", "[horizonsfile]") {
     data.stop = "2022-05-20 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_9.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_9.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -400,9 +418,11 @@ TEST_CASE("HorizonsFile: Multiple targets (minor bodies case 1)", "[horizonsfile
     data.stop = "2022-05-20 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_10.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_10.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -435,9 +455,11 @@ TEST_CASE("HorizonsFile: Multiple targets (minor bodies case 2)", "[horizonsfile
     data.stop = "2022-05-20 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_11.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_11.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleTarget;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -470,9 +492,11 @@ TEST_CASE("HorizonsFile: Detect multiple observers or targets", "[horizonsfile]"
     data.stop = "2022-05-23 00:00:00";
     data.step = "1";
     data.unit = "d";
-    std::filesystem::path filePath = absPath("${TESTDIR}/horizonsTest/horizonstest_12.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleObserver;
+    const std::filesystem::path filePath = absPath(
+        "${TESTDIR}/horizonsTest/horizonstest_12.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::MultipleObserver;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -505,10 +529,14 @@ TEST_CASE("HorizonsFile: Valid request and response", "[horizonsfile]") {
     data.stop = "2022-05-23 00:00:00";
     data.step = "12";
     data.unit = "h";
-    std::filesystem::path filePathVector = absPath("${TESTDIR}/horizonsTest/validVectorFile.hrz");
-    std::filesystem::path filePathObserver = absPath("${TESTDIR}/horizonsTest/validObserverFile.hrz");
-    HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
-    HorizonsResultCode expectedResultCode = HorizonsResultCode::Valid;
+    const std::filesystem::path filePathVector = absPath(
+        "${TESTDIR}/horizonsTest/validVectorFile.hrz"
+    );
+    const std::filesystem::path filePathObserver = absPath(
+        "${TESTDIR}/horizonsTest/validObserverFile.hrz"
+    );
+    const HorizonsResultCode expectedAnswerCode = HorizonsResultCode::Valid;
+    const HorizonsResultCode expectedResultCode = HorizonsResultCode::Valid;
 
     // Test Vector format
     HorizonsType type = HorizonsType::Vector;
@@ -539,12 +567,12 @@ TEST_CASE("HorizonsFile: Valid request and response", "[horizonsfile]") {
 // Since data can get updated this is tested towards stored files
 TEST_CASE("HorizonsFile: Parsing time range with time", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    std::filesystem::path filePath =
+    const std::filesystem::path filePath =
         absPath("${TESTDIR}/horizonsTest/timerange_time.hrz");
-    HorizonsFile horizonsFile(filePath);
+    const HorizonsFile horizonsFile(filePath);
 
     // Parse time range
-    std::pair<std::string, std::string> timeRange = horizonsFile.parseValidTimeRange(
+    const std::pair<std::string, std::string> timeRange = horizonsFile.parseValidTimeRange(
         "Trajectory files",
         "************",
         "Trajectory name"
@@ -557,12 +585,12 @@ TEST_CASE("HorizonsFile: Parsing time range with time", "[horizonsfile]") {
 
 TEST_CASE("HorizonsFile: Parsing time range without time", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    std::filesystem::path filePath =
+    const std::filesystem::path filePath =
         absPath("${TESTDIR}/horizonsTest/timerange_no_time.hrz");
-    HorizonsFile horizonsFile(filePath);
+    const HorizonsFile horizonsFile(filePath);
 
     // Parse time range
-    std::pair<std::string, std::string> timeRange = horizonsFile.parseValidTimeRange(
+    const std::pair<std::string, std::string> timeRange = horizonsFile.parseValidTimeRange(
         "Trajectory files",
         "************",
         "Trajectory name",
@@ -579,12 +607,12 @@ TEST_CASE("HorizonsFile: Parsing time range without time", "[horizonsfile]") {
 // Since data can get updated this is tested towards stored files
 TEST_CASE("HorizonsFile: Parsing multiple matching observers", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    std::filesystem::path filePath =
+    const std::filesystem::path filePath =
         absPath("${TESTDIR}/horizonsTest/parse_multiple_observers.hrz");
-    HorizonsFile horizonsFile(filePath);
+    const HorizonsFile horizonsFile(filePath);
 
     // Parse matches
-    std::vector<std::string> matches =
+    const std::vector<std::string> matches =
         horizonsFile.parseMatches("Name", "matches", ">MATCH NAME<");
 
     REQUIRE(matches.size() == 3);
@@ -602,12 +630,12 @@ TEST_CASE("HorizonsFile: Parsing multiple matching observers", "[horizonsfile]")
 
 TEST_CASE("HorizonsFile: Parsing multiple matching targets", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    std::filesystem::path filePath =
+    const std::filesystem::path filePath =
         absPath("${TESTDIR}/horizonsTest/parse_multiple_targets.hrz");
-    HorizonsFile horizonsFile(filePath);
+    const HorizonsFile horizonsFile(filePath);
 
     // Parse matches
-    std::vector<std::string> matches =
+    const std::vector<std::string> matches =
         horizonsFile.parseMatches("Name", "matches", ">MATCH NAME<");
 
     REQUIRE(matches.size() == 11);
@@ -649,13 +677,13 @@ TEST_CASE("HorizonsFile: Parsing multiple matching targets", "[horizonsfile]") {
 
 TEST_CASE("HorizonsFile: Parsing multiple matching stations", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    std::filesystem::path filePath =
+    const std::filesystem::path filePath =
         absPath("${TESTDIR}/horizonsTest/parse_multiple_stations.hrz");
     CHECK(std::filesystem::is_regular_file(filePath));
-    HorizonsFile horizonsFile(filePath);
+    const HorizonsFile horizonsFile(filePath);
 
     // Parse matches
-    std::vector<std::string> matches =
+    const std::vector<std::string> matches =
         horizonsFile.parseMatches("Observatory Name", "Multiple matching stations found");
 
     REQUIRE(matches.size() == 11);
@@ -699,8 +727,8 @@ TEST_CASE("HorizonsFile: Parsing multiple matching stations", "[horizonsfile]") 
 // Test reading of data and compare a recent request with a stored file
 TEST_CASE("HorizonsFile: Reading Vector data from request", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    HorizonsType type = HorizonsType::Vector;
-    std::filesystem::path filePathVector =
+    const HorizonsType type = HorizonsType::Vector;
+    const std::filesystem::path filePathVector =
         absPath("${TESTDIR}/horizonsTest/validVectorFile.hrz");
 
     const double t0 = 706449669.18513119;
@@ -733,8 +761,8 @@ TEST_CASE("HorizonsFile: Reading Vector data from request", "[horizonsfile]") {
 
 TEST_CASE("HorizonsFile: Reading Observer data from request", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    HorizonsType type = HorizonsType::Observer;
-    std::filesystem::path filePathObserver =
+    const HorizonsType type = HorizonsType::Observer;
+    const std::filesystem::path filePathObserver =
         absPath("${TESTDIR}/horizonsTest/validObserverFile.hrz");
 
     const double t0 = 706449669.18513119;
@@ -768,8 +796,8 @@ TEST_CASE("HorizonsFile: Reading Observer data from request", "[horizonsfile]") 
 
 TEST_CASE("HorizonsFile: Reading Vector data from file", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    HorizonsType type = HorizonsType::Vector;
-    std::filesystem::path filePathVector =
+    const HorizonsType type = HorizonsType::Vector;
+    const std::filesystem::path filePathVector =
         absPath("${TESTDIR}/horizonsTest/vectorFileTest.hrz");
 
     const double t0 = 706449669.18513119;
@@ -798,8 +826,8 @@ TEST_CASE("HorizonsFile: Reading Vector data from file", "[horizonsfile]") {
 
 TEST_CASE("HorizonsFile: Reading Observer data from file", "[horizonsfile]") {
 #ifdef OPENSPACE_MODULE_SPACE_ENABLED
-    HorizonsType type = HorizonsType::Observer;
-    std::filesystem::path filePathObserver =
+    const HorizonsType type = HorizonsType::Observer;
+    const std::filesystem::path filePathObserver =
         absPath("${TESTDIR}/horizonsTest/observerFileTest.hrz");
 
     const double t0 = 706449669.18513119;

@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -75,7 +75,7 @@ public:
     void initializeCachedVariables(ghoul::opengl::ProgramObject& program) override;
 
     void update(const UpdateData&) override;
-    float eclipseShadow(glm::dvec3 position);
+    float eclipseShadow(const glm::dvec3& position);
 
     void calculateAtmosphereParameters();
 
@@ -93,7 +93,7 @@ public:
     void setHardShadows(bool enabled);
 
 private:
-    void step3DTexture(ghoul::opengl::ProgramObject& prg, int layer);
+    void step3DTexture(ghoul::opengl::ProgramObject& prg, int layer) const;
 
     void calculateTransmittance();
     GLuint calculateDeltaE();

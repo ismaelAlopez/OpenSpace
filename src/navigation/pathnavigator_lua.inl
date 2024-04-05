@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -173,7 +173,7 @@ namespace {
     }
     catch (const documentation::SpecificationError& e) {
         logError(e, "flyToNavigationState");
-        throw ghoul::lua::LuaError(fmt::format("Unable to create a path: {}", e.what()));
+        throw ghoul::lua::LuaError(std::format("Unable to create a path: {}", e.what()));
     }
 
     ghoul::Dictionary instruction;

@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -31,6 +31,7 @@
 #include <openspace/util/time.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
+#include <ghoul/misc/stringhelper.h>
 #include <numeric>
 #include <mutex>
 #include <optional>
@@ -67,8 +68,8 @@ namespace {
         // parameter only only contain exactly one URL
         std::optional<std::string> filename;
 
-        // This variable determines the validity period of a file(s) in seconds before it 
-        // needs to be re-downloaded. The default value keeps the file permanently cached, 
+        // This variable determines the validity period of a file(s) in seconds before it
+        // needs to be re-downloaded. The default value keeps the file permanently cached,
         // while a value of 0 forces the file to be downloaded on every startup.
         std::optional<double> secondsUntilResync [[codegen::greaterequal(0.0)]];
     };
@@ -99,7 +100,7 @@ UrlSynchronization::UrlSynchronization(const ghoul::Dictionary& dictionary,
     }
 
     if (p.filename.has_value() && _urls.size() > 1) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "UrlSynchronization ({}) requested overwrite filename but specified {} URLs "
             "to download, which is not legal",
             p.identifier, _urls.size()
@@ -128,12 +129,12 @@ UrlSynchronization::UrlSynchronization(const ghoul::Dictionary& dictionary,
         size_t hash = std::hash<std::string>{}(
             std::accumulate(urls.begin(), urls.end(), std::string())
         );
-        _identifier += fmt::format("({})", hash);
+        _identifier += std::format("({})", hash);
     }
 
     if (p.forceOverride.has_value()) {
-        LWARNING(fmt::format(
-            "{}: The variable ForceOverride has been deprecated."
+        LWARNING(std::format(
+            "{}: The variable ForceOverride has been deprecated. "
             "Optionally, use SecondsUntilResync instead to specify file validity date.",
             p.identifier
         ));
@@ -210,7 +211,7 @@ bool UrlSynchronization::isEachFileValid() {
         file.close();
         createSyncFile();
         // File is valid until some date
-        return true; 
+        return true;
     }
     // Otherwise first line is the version number.
     std::string ossyncVersion = line;
@@ -221,22 +222,20 @@ bool UrlSynchronization::isEachFileValid() {
     // Valid to: yyyy-mm-ddThr:mn:sc.xxx
 
     if (ossyncVersion == "1.0") {
-        std::getline(file >> std::ws, line);
+        ghoul::getline(file >> std::ws, line);
         std::string& fileIsValidToDate = line;
-        double fileValidAsJ2000 = Time::convertTime(fileIsValidToDate);
+        const double fileValidAsJ2000 = Time::convertTime(fileIsValidToDate);
 
-        std::string todaysDate = Time::currentWallTime();
-        double todaysDateAsJ2000 = Time::convertTime(todaysDate);
+        const std::string todaysDate = Time::currentWallTime();
+        const double todaysDateAsJ2000 = Time::convertTime(todaysDate);
 
         // Issue warning if file is kept but user changed setting to download on startup.
         if ((fileValidAsJ2000 > todaysDateAsJ2000) && _secondsUntilResync == 0) {
-            LWARNING(fmt::format(
+            LWARNING(std::format(
                 "{}: File is valid to {} but asset specifies SecondsUntilResync = {} "
                 "Did you mean to re-download the file? If so, remove file from sync "
                 "folder to resync",
-                _identifier,
-                fileIsValidToDate,
-                _secondsUntilResync
+                _identifier, fileIsValidToDate, _secondsUntilResync
             ));
         }
 
@@ -244,8 +243,12 @@ bool UrlSynchronization::isEachFileValid() {
         // i.e. no sync needed.
         return fileValidAsJ2000 > todaysDateAsJ2000;
     }
+    else if (ossyncVersion.empty()) {
+        // For some reason we ended up with an empty synchronization file
+        return false;
+    }
     else {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "{}: Unknown ossync version number read. Got {} while {} and below are valid",
             _identifier, ossyncVersion, OssyncVersionNumber
         ));
@@ -262,12 +265,12 @@ void UrlSynchronization::createSyncFile(bool) const {
     dir.replace_extension("ossync");
     std::ofstream syncFile(dir, std::ofstream::out);
 
-    std::string currentTimeAsISO8601 = Time::currentWallTime();
-    double currentTimeAsJ2000 = Time::convertTime(currentTimeAsISO8601);
+    const std::string currentTimeAsISO8601 = Time::currentWallTime();
+    const double currentTimeAsJ2000 = Time::convertTime(currentTimeAsISO8601);
 
     // With the format YYYY-MM... any year thats larger than 4 digits throws an error
     // Limit the future date to year 9999
-    double futureTimeAsJ2000 = std::min(
+    const double futureTimeAsJ2000 = std::min(
         currentTimeAsJ2000 + _secondsUntilResync,
         MaxDateAsJ2000
     );
@@ -277,7 +280,7 @@ void UrlSynchronization::createSyncFile(bool) const {
         "YYYY-MM-DDTHR:MN:SC.###"
     );
 
-    const std::string msg = fmt::format("{}\n{}\n", OssyncVersionNumber, fileIsValidTo);
+    const std::string msg = std::format("{}\n{}\n", OssyncVersionNumber, fileIsValidTo);
     syncFile << msg;
 }
 
@@ -289,7 +292,6 @@ bool UrlSynchronization::trySyncUrls() {
 
     std::unordered_map<std::string, SizeData> sizeData;
     std::mutex fileSizeMutex;
-    size_t nDownloads = 0;
     std::atomic_bool startedAllDownloads = false;
     std::vector<std::unique_ptr<HttpFileDownload>> downloads;
 
@@ -310,20 +312,19 @@ bool UrlSynchronization::trySyncUrls() {
         std::filesystem::path destination = directory() / (_filename + ".tmp");
 
         if (sizeData.find(url) != sizeData.end()) {
-            LWARNING(fmt::format("{}: Duplicate entry for {}", _identifier, url));
+            LWARNING(std::format("{}: Duplicate entry for '{}'", _identifier, url));
             continue;
         }
 
         auto download = std::make_unique<HttpFileDownload>(
             url,
-            destination,
+            std::move(destination),
             HttpFileDownload::Overwrite::Yes
         );
         HttpFileDownload* dl = download.get();
 
         downloads.push_back(std::move(download));
 
-        ++nDownloads;
         sizeData[url] = SizeData();
 
         dl->onProgress(
@@ -334,7 +335,7 @@ bool UrlSynchronization::trySyncUrls() {
                     return !_shouldCancel;
                 }
 
-                std::lock_guard guard(fileSizeMutex);
+                const std::lock_guard guard(fileSizeMutex);
                 sizeData[url] = { downloadedBytes, totalBytes };
 
                 _nTotalBytesKnown = true;
@@ -360,7 +361,7 @@ bool UrlSynchronization::trySyncUrls() {
         d->wait();
         if (!d->hasSucceeded()) {
             failed = true;
-            LERROR(fmt::format("Error downloading file from URL {}", d->url()));
+            LERROR(std::format("Error downloading file from URL: {}", d->url()));
             continue;
         }
 
@@ -381,7 +382,7 @@ bool UrlSynchronization::trySyncUrls() {
         if (ec) {
             LERRORC(
                 "URLSynchronization",
-                fmt::format("Error renaming file {} to {}", tempName, originalName)
+                std::format("Error renaming file '{}' to '{}'", tempName, originalName)
             );
 
             failed = true;

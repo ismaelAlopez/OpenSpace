@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -98,8 +98,8 @@ public:
 
     void interpolateTime(double targetTime, double durationSeconds);
     void interpolateTimeRelative(double delta, double durationSeconds);
-    void interpolateDeltaTime(double targetDeltaTime, double durationSeconds);
-    void interpolatePause(bool pause, double durationSeconds);
+    void interpolateDeltaTime(double newDeltaTime, double interpolationDuration);
+    void interpolatePause(bool pause, double interpolationDuration);
 
     std::optional<double> nextDeltaTimeStep();
     std::optional<double> previousDeltaTimeStep();
@@ -110,7 +110,7 @@ public:
     void interpolateNextDeltaTimeStep(double durationSeconds);
     void interpolatePreviousDeltaTimeStep(double durationSeconds);
 
-    void addKeyframe(double timestamp, TimeKeyframeData kf);
+    void addKeyframe(double timestamp, TimeKeyframeData time);
     void removeKeyframesBefore(double timestamp, bool inclusive = false);
     void removeKeyframesAfter(double timestamp, bool inclusive = false);
 

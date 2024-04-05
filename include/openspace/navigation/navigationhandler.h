@@ -2,7 +2,7 @@
  *                                                                                       *
  * OpenSpace                                                                             *
  *                                                                                       *
- * Copyright (c) 2014-2023                                                               *
+ * Copyright (c) 2014-2024                                                               *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -143,9 +143,9 @@ public:
     NavigationState navigationState(const SceneGraphNode& referenceFrame) const;
 
     void saveNavigationState(const std::filesystem::path& filepath,
-        const std::string& referenceFrameIdentifier);
+        const std::string& referenceFrameIdentifier) const;
 
-    void loadNavigationState(const std::string& filepath);
+    void loadNavigationState(const std::string& filepath, bool useTimeStamp);
 
     /**
      * Set camera state from a provided navigation state next frame. The actual position
@@ -181,9 +181,9 @@ private:
     Camera* _camera = nullptr;
     std::function<void()> _playbackEndCallback;
 
-    static constexpr double InteractionHystersis = 0.0125;
     bool _inAnchorApproachSphere = false;
     bool _inAnchorReachSphere = false;
+    const SceneGraphNode* _lastAnchor = nullptr;
 
     OrbitalNavigator _orbitalNavigator;
     KeyframeNavigator _keyframeNavigator;
