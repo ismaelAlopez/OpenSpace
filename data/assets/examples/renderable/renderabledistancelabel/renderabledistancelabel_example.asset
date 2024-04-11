@@ -1,0 +1,47 @@
+local moon = asset.require("scene/solarsystem/planets/earth/moon/moon")
+local earth = asset.require("scene/solarsystem/planets/earth/earth")
+
+
+local line = {
+  Identifier = "RenderableNodeLine_example",
+  Renderable = {
+    Type = "RenderableNodeLine",
+    StartNode = earth.Earth.Identifier,
+    EndNode = moon.Moon.Identifier,
+    Color = {1.0, 0.6 , 0.0},
+    LineWidth = 2.0,
+    Enabled = true
+  },
+  GUI = {
+    Name = "Renderable Node Line Example",
+    Path = "/examples",
+  }
+}
+
+local label = {
+  Identifier = "RenderableDistanceLabel_example",
+  Renderable = {
+    Type = "RenderableDistanceLabel",
+    NodeLine = "RenderableNodeLine_example",
+    DistanceUnit = 1,
+    CustomUnitDescriptor = "Kilometers",
+    Size = 6.0,
+    Enabled = true
+  },
+  GUI = {
+    Name = "Renderable Distance Lable Example",
+    Path = "/examples",
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.addSceneGraphNode(line)
+  openspace.addSceneGraphNode(label)
+end)
+
+asset.onDeinitialize(function()
+  openspace.removeSceneGraphNode(label)
+  openspace.removeSceneGraphNode(line)
+end)
+
