@@ -1,0 +1,40 @@
+local transforms = asset.require("scene/solarsystem/planets/earth/transforms")
+local path = "C:/Users/eolsson/Documents/openspace/data/2012/3d__var_1_e20120714-160000-000.out.cdf"
+
+local cutplane = {
+  Identifier = "Test-cutplane",
+  Parent = transforms.Earth,
+  Renderable = {
+    Type = "RenderableCutPlane",
+    Input = path,
+    Size = {100000, 100000},
+    DataProperty = "T"
+  },
+  GUI = {
+    Name = "Volume Slicer",
+    Path = "/Solar System/Heliosphere",
+    Description = [[]]
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.addSceneGraphNode(cutplane)
+end)
+
+asset.onDeinitialize(function()
+  openspace.removeSceneGraphNode(cutplane)
+end)
+
+asset.export(cutplane)
+
+
+
+asset.meta = {
+  Name = "Volume slicer creating cut plane of CDF volume data",
+  Version = "1.0",
+  Description = [[Volume slicer creating cut plane of CDF volume data]],
+  Author = "CCMC, OpenSpace team",
+  URL = "",
+  License = "CC-BY"
+}

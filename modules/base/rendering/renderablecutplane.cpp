@@ -25,9 +25,12 @@
 #include <modules/base/rendering/renderablecutplane.h>
 #include <modules/kameleonvolume/kameleonvolumereader.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/logging/logmanager.h>
 #include <filesystem>
 
 namespace {
+constexpr std::string_view _loggerCat = "RenderableCutPlane";
+
 constexpr openspace::properties::Property::PropertyInfo FilePathInfo = {
     "FilePath",
     "Filepath to the file to create texture from",
@@ -66,31 +69,18 @@ RenderableCutPlane::RenderableCutPlane(const ghoul::Dictionary& dictionary)
 {
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
-    _inputPath = absPath(p.input.string());
+    _inputPath = absPath(p.input);
     _dataProperty = p.dataProperty;
 }
 
 void RenderableCutPlane::initialize() {
-
-}
-
-void RenderableCutPlane::initializeGL() {
-
-    //kameleonvolume::KameleonVolumeReader volumeReader(_inputPath.string());
-
-    std::string _path = "C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf";
+    if (!std::filesystem::is_regular_file(_inputPath)) {
+        throw ghoul::FileNotFoundError(_inputPath.string());
+    }
 
     std::unique_ptr<ccmc::Kameleon> kameleon = kameleonHelper::createKameleonObject(
         _inputPath.string()
     );
-    
-
-    if (!std::filesystem::is_regular_file(
-        _inputPath)) {
-        throw ghoul::FileNotFoundError(
-            _inputPath.string());
-    }
-
     long status = kameleon->open(_inputPath.string());
     if (status != ccmc::FileReader::OK) {
         throw ghoul::RuntimeError(fmt::format(
@@ -99,18 +89,19 @@ void RenderableCutPlane::initializeGL() {
         ));
     }
 
-    std::cout << "Model name: " << kameleon->getModelName() << std::endl;
+    LINFO(fmt::format("Model name: '{}'", kameleon->getModelName()));
     std::cout << "Filename: " << kameleon->getCurrentFilename() << std::endl;
     std::cout << "Number of variables: " << kameleon->getNumberOfVariables() << std::endl;
     std::cout << "Number of variable attributes: " << kameleon->getNumberOfVariableAttributes() << std::endl;
     std::cout << "Current time: " << kameleon->getCurrentTime() << std::endl;
 
 
-    //long status;
-    //status = _kameleon->open("C:/Users/alundkvi/Documents/work/data/Tracing/cdf/3d__var_1_e20230323-000000-000.out.cdf");
-
     // Load cdf file
     //Extract slice from data
+}
+
+void RenderableCutPlane::initializeGL() {
+
 }
 
 void RenderableCutPlane::deinitializeGL() {
