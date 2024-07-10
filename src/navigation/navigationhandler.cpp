@@ -35,12 +35,13 @@
 #include <openspace/navigation/navigationstate.h>
 #include <openspace/navigation/waypoint.h>
 #include <openspace/network/parallelpeer.h>
+#include <openspace/query/query.h>
 #include <openspace/scene/profile.h>
 #include <openspace/scene/scene.h>
 #include <openspace/scene/scenegraphnode.h>
 #include <openspace/scripting/lualibrary.h>
 #include <openspace/scripting/scriptengine.h>
-#include <openspace/query/query.h>
+#include <openspace/util/timemanager.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
@@ -64,21 +65,21 @@ namespace {
         "DisableKeybindings",
         "Disable all Keybindings",
         "Disables all keybindings without removing them. Please note that this does not "
-        "apply to the key to open the console",
+        "apply to the key to open the console.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
     constexpr openspace::properties::Property::PropertyInfo DisableMouseInputInfo = {
         "DisableMouseInputs",
         "Disable all mouse inputs",
-        "Disables all mouse inputs and prevents them from affecting the camera",
+        "Disables all mouse inputs and prevents them from affecting the camera.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
     constexpr openspace::properties::Property::PropertyInfo DisableJoystickInputInfo = {
         "DisableJoystickInputs",
         "Disable all joystick inputs",
-        "Disables all joystick inputs and prevents them from affecting the camera",
+        "Disables all joystick inputs and prevents them from affecting the camera.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -86,8 +87,18 @@ namespace {
         "UseKeyFrameInteraction",
         "Use keyframe interaction",
         "If this is set to 'true' the entire interaction is based off key frames rather "
-        "than using the mouse interaction",
+        "than using the mouse interaction.",
         openspace::properties::Property::Visibility::Developer
+    };
+
+    constexpr openspace::properties::Property::PropertyInfo JumpToFadeDurationInfo = {
+        "JumpToFadeDuration",
+        "JumpTo Fade Duration",
+        "The number of seconds the fading of the rendering should take per default when "
+        "navigating through a 'jump' transition. This is when the rendering is first "
+        "faded to black, then the camera is moved, and then the rendering fades in "
+        "again.",
+        openspace::properties::Property::Visibility::User
     };
 } // namespace
 
@@ -99,6 +110,7 @@ NavigationHandler::NavigationHandler()
     , _disableMouseInputs(DisableMouseInputInfo, false)
     , _disableJoystickInputs(DisableJoystickInputInfo, false)
     , _useKeyFrameInteraction(FrameInfo, false)
+    , _jumpToFadeDuration(JumpToFadeDurationInfo, 1.f, 0.f, 10.f)
 {
     addPropertySubOwner(_orbitalNavigator);
     addPropertySubOwner(_pathNavigator);
@@ -107,6 +119,7 @@ NavigationHandler::NavigationHandler()
     addProperty(_disableMouseInputs);
     addProperty(_disableJoystickInputs);
     addProperty(_useKeyFrameInteraction);
+    addProperty(_jumpToFadeDuration);
 }
 
 NavigationHandler::~NavigationHandler() {}
@@ -169,12 +182,47 @@ bool NavigationHandler::isKeyFrameInteractionEnabled() const {
     return _useKeyFrameInteraction;
 }
 
+float NavigationHandler::jumpToFadeDuration() const {
+    return _jumpToFadeDuration;
+}
+
 float NavigationHandler::interpolationTime() const {
     return _orbitalNavigator.retargetInterpolationTime();
 }
 
 void NavigationHandler::setInterpolationTime(float durationInSeconds) {
     _orbitalNavigator.setRetargetInterpolationTime(durationInSeconds);
+}
+
+void NavigationHandler::triggerFadeToTransition(const std::string& transitionScript,
+                                                std::optional<float> fadeDuration)
+{
+    const float duration = fadeDuration.value_or(_jumpToFadeDuration);
+
+    std::string script;
+    if (duration < std::numeric_limits<float>::epsilon()) {
+        script = transitionScript;
+    }
+    else {
+        const std::string onArrivalScript = std::format(
+            "{} "
+            "openspace.setPropertyValueSingle("
+            "'RenderEngine.BlackoutFactor', 1, {}, 'QuadraticEaseIn'"
+            ")", transitionScript, duration
+        );
+        script = std::format(
+            "openspace.setPropertyValueSingle("
+            "'RenderEngine.BlackoutFactor', 0, {}, 'QuadraticEaseOut', [[{}]]"
+            ")", duration, onArrivalScript
+        );
+    }
+
+    // No syncing, as this was called from a script that should have been synced already
+    global::scriptEngine->queueScript(
+        std::move(script),
+        scripting::ScriptEngine::ShouldBeSynchronized::No,
+        scripting::ScriptEngine::ShouldSendToRemote::No
+    );
 }
 
 void NavigationHandler::updateCamera(double deltaTime) {
@@ -531,7 +579,10 @@ NavigationState NavigationHandler::navigationState(
         _orbitalNavigator.aimNode() ? _orbitalNavigator.aimNode()->identifier() : "",
         referenceFrame.identifier(),
         position,
-        invReferenceFrameTransform * neutralUp, yaw, pitch
+        invReferenceFrameTransform * neutralUp,
+        yaw,
+        pitch,
+        global::timeManager->time().j2000Seconds()
     );
 }
 
@@ -544,7 +595,7 @@ void NavigationHandler::saveNavigationState(const std::filesystem::path& filepat
     if (!referenceFrameIdentifier.empty()) {
         const SceneGraphNode* referenceFrame = sceneGraphNode(referenceFrameIdentifier);
         if (!referenceFrame) {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Could not find node '{}' to use as reference frame",
                 referenceFrameIdentifier
             ));
@@ -561,12 +612,12 @@ void NavigationHandler::saveNavigationState(const std::filesystem::path& filepat
         // Adding the .navstate extension to the filepath if it came without one
         absolutePath.replace_extension(".navstate");
     }
-    LINFO(fmt::format("Saving camera position: {}", absolutePath));
+    LINFO(std::format("Saving camera position: {}", absolutePath));
 
     std::ofstream ofs(absolutePath);
 
     if (!ofs.good()) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Error saving navigation state to '{}'", filepath
         ));
     }
@@ -574,23 +625,41 @@ void NavigationHandler::saveNavigationState(const std::filesystem::path& filepat
     ofs << state.toJson().dump(2);
 }
 
-void NavigationHandler::loadNavigationState(const std::string& filepath) {
-    const std::filesystem::path absolutePath = absPath(filepath);
-    LINFO(fmt::format("Reading camera state from file: {}", absolutePath));
+void NavigationHandler::loadNavigationState(const std::string& filepath,
+                                            bool useTimeStamp)
+{
+    std::filesystem::path absolutePath = absPath(filepath);
+    LINFO(std::format("Reading camera state from file: {}", absolutePath));
 
-    if (!std::filesystem::is_regular_file(absolutePath)) {
-        throw ghoul::FileNotFoundError(absolutePath.string(), "NavigationState");
+    if (!absolutePath.has_extension()) {
+        // Adding the .navstate extension to the filepath if it came without one
+        absolutePath.replace_extension(".navstate");
     }
 
-    std::ifstream f = std::ifstream(filepath);
+    if (!std::filesystem::is_regular_file(absolutePath)) {
+        throw ghoul::FileNotFoundError(absolutePath, "NavigationState");
+    }
+
+    std::ifstream f = std::ifstream(absolutePath);
     const std::string contents = std::string(
         std::istreambuf_iterator<char>(f),
         std::istreambuf_iterator<char>()
     );
+
+    if (contents.empty()) {
+        throw::ghoul::RuntimeError(std::format(
+            "Failed reading camera state from file: {}. File is empty", absolutePath
+        ));
+    }
+
     const nlohmann::json json = nlohmann::json::parse(contents);
 
     const NavigationState state = NavigationState(json);
     setNavigationStateNextFrame(state);
+
+    if (useTimeStamp && state.timestamp.has_value()) {
+        global::timeManager->setTimeNextFrame(Time(*state.timestamp));
+    }
 }
 
 std::vector<std::string> NavigationHandler::listAllJoysticks() const {

@@ -26,11 +26,12 @@
 
 #include <openspace/documentation/documentation.h>
 #include <openspace/util/spicemanager.h>
-#include <ghoul/fmt.h>
-#include <ghoul/logging/logmanager.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
+#include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/dictionary.h>
+#include <ghoul/misc/stringhelper.h>
 #include <filesystem>
 #include <fstream>
 
@@ -49,7 +50,8 @@ namespace {
 
 namespace openspace {
 
-InstrumentTimesParser::InstrumentTimesParser(std::string name, std::string sequenceSource,
+InstrumentTimesParser::InstrumentTimesParser(std::string name,
+                                             std::filesystem::path sequenceSource,
                                              ghoul::Dictionary& inputDict)
     : _pattern("\"(.{23})\" \"(.{23})\"")
     , _name(std::move(name))
@@ -76,7 +78,7 @@ InstrumentTimesParser::InstrumentTimesParser(std::string name, std::string seque
 bool InstrumentTimesParser::create() {
     std::filesystem::path sequenceDir = absPath(_fileName);
     if (!std::filesystem::is_directory(sequenceDir)) {
-        LERROR(fmt::format("Could not load label directory '{}'", sequenceDir));
+        LERROR(std::format("Could not load label directory '{}'", sequenceDir));
         return false;
     }
 
@@ -88,7 +90,7 @@ bool InstrumentTimesParser::create() {
             std::filesystem::path filepath = sequenceDir / filename;
 
             if (!std::filesystem::is_regular_file(filepath)) {
-                LERROR(fmt::format("Unable to read file '{}'. Skipping file", filepath));
+                LERROR(std::format("Unable to read file '{}'. Skipping file", filepath));
                 continue;
             }
 
@@ -98,7 +100,7 @@ bool InstrumentTimesParser::create() {
             std::smatch matches;
             TimeRange instrumentActiveTimeRange;
             bool successfulRead = true;
-            while (std::getline(inFile, line)) {
+            while (ghoul::getline(inFile, line)) {
                 if (!std::regex_match(line, matches, _pattern)) {
                     continue;
                 }

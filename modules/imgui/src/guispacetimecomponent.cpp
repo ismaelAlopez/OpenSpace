@@ -211,7 +211,7 @@ void GuiSpaceTimeComponent::render() {
         // No sync or send because time settings are always synced and sent to the
         // connected nodes and peers
         global::scriptEngine->queueScript(
-            fmt::format("openspace.time.setTime([[{}]])", std::string_view(Buffer)),
+            std::format("openspace.time.setTime([[{}]])", std::string_view(Buffer)),
             scripting::ScriptEngine::ShouldBeSynchronized::No,
             scripting::ScriptEngine::ShouldSendToRemote::No
         );
@@ -230,9 +230,10 @@ void GuiSpaceTimeComponent::render() {
 
         const float duration = global::timeManager->defaultTimeInterpolationDuration();
 
-        const TimeKeyframeData predictedTime = global::timeManager->interpolate(
-            global::windowDelegate->applicationTime() + duration
-        );
+        const TimeManager::TimeKeyframeData predictedTime =
+            global::timeManager->interpolate(
+                global::windowDelegate->applicationTime() + duration
+            );
         const double j2000 = predictedTime.time.j2000Seconds();
         const long long seconds = duration_cast<std::chrono::seconds>(
             std::chrono::hours(24) * std::abs(days)
@@ -345,7 +346,7 @@ void GuiSpaceTimeComponent::render() {
                 openspace::TimeUnits.end(),
                 std::string(""),
                 [](const std::string& a, const openspace::TimeUnit& unit) {
-                    return fmt::format(
+                    return std::format(
                         "{}{} / second", a, nameForTimeUnit(unit, true)
                     ) + '\0';
                 }

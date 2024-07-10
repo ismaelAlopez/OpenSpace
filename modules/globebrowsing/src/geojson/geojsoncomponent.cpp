@@ -37,7 +37,7 @@
 #include <openspace/scripting/scriptengine.h>
 #include <openspace/util/updatestructures.h>
 #include <ghoul/filesystem/filesystem.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/opengl/openglstatecache.h>
 #include <ghoul/opengl/programobject.h>
@@ -61,14 +61,14 @@ namespace {
     constexpr openspace::properties::Property::PropertyInfo EnabledInfo = {
         "Enabled",
         "Enabled",
-        "This setting determines whether this object will be visible or not",
+        "This setting determines whether this object will be visible or not.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
     constexpr openspace::properties::Property::PropertyInfo FileInfo = {
         "File",
         "File",
-        "Path to the GeoJSON file to base the rendering on",
+        "Path to the GeoJSON file to base the rendering on.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -76,7 +76,7 @@ namespace {
         "HeightOffset",
         "Height Offset",
         "A height offset value, in meters. Useful for moving a feature closer to or "
-        "farther away from the surface",
+        "farther away from the surface.",
         openspace::properties::Property::Visibility::NoviceUser
     };
 
@@ -86,7 +86,7 @@ namespace {
         "A latitude and longitude offset value, in decimal degrees. Can be used to "
         "move the object on the surface and correct potential mismatches with other "
         "renderings. Note that changing it during runtime leads to all positions being "
-        "recomputed",
+        "recomputed.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -94,7 +94,7 @@ namespace {
         "DrawWireframe",
         "Wireframe",
         "If true, draw the wire frame of the polygons. Used for testing and to "
-        "investigate tessellation results",
+        "investigate tessellation results.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -103,7 +103,7 @@ namespace {
         "Prevent Update From Heightmap",
         "If true, the polygon mesh will not be automatically updated based on the "
         "heightmap, even if the 'RelativeToGround' altitude option is set and the "
-        "heightmap updates. The data can still be force updated",
+        "heightmap updates. The data can still be force updated.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -111,7 +111,7 @@ namespace {
         "ForceUpdateHeightData",
         "Force Update Height Data",
         "Triggering this leads to a recomputation of the heights based on the globe "
-        "height map value at the geometry's positions",
+        "height map value at the geometry's positions.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -120,7 +120,7 @@ namespace {
         "Points Aligned to",
         "Decides how the billboards for the points should be rendered in terms of up "
         "direction and whether the plane should face the camera. See details on the "
-        "different options in the wiki",
+        "different options in the wiki.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -128,7 +128,7 @@ namespace {
         "FlyToFeature",
         "Fly To Feature",
         "Triggering this leads to the camera flying to a position that show the GeoJson "
-        "feature. The flight will account for any lat, long or height offset",
+        "feature. The flight will account for any lat, long or height offset.",
         openspace::properties::Property::Visibility::NoviceUser
     };
 
@@ -136,7 +136,7 @@ namespace {
         "CentroidCoordinate",
         "Centroid Coordinate",
         "The lat long coordinate of the centroid position of the read geometry. Note "
-        "that this value does not incude the offset",
+        "that this value does not incude the offset.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -144,7 +144,7 @@ namespace {
         "BoundingBox",
         "Bounding Box",
         "The lat long coordinates of the lower and upper corner of the bounding box of "
-        "the read geometry. Note that this value does not incude the offset",
+        "the read geometry. Note that this value does not incude the offset.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -152,7 +152,7 @@ namespace {
         "PointSizeScale",
         "Point Size Scale",
         "An extra scale value that can be used to increase or decrease the scale of any "
-        "rendered points in the component, even if a value is set from the GeoJson file",
+        "rendered points in the component, even if a value is set from the GeoJson file.",
         openspace::properties::Property::Visibility::NoviceUser
     };
 
@@ -368,7 +368,7 @@ GeoJsonComponent::GeoJsonComponent(const ghoul::Dictionary& dictionary,
             _textureIsDirty = true;
         }
         else {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Provided texture file does not exist: {}",
                 _defaultProperties.pointTexture.value()
             ));
@@ -594,7 +594,7 @@ void GeoJsonComponent::readFile() {
     std::ifstream file(_geoJsonFile);
 
     if (!file.good()) {
-        LERROR(fmt::format("Failed to open GeoJSON file: {}", _geoJsonFile.value()));
+        LERROR(std::format("Failed to open GeoJSON file: {}", _geoJsonFile.value()));
         return;
     }
 
@@ -617,7 +617,7 @@ void GeoJsonComponent::readFile() {
         }
 
         if (_geometryFeatures.empty()) {
-            LWARNING(fmt::format(
+            LWARNING(std::format(
                 "No GeoJson features could be successfully created for GeoJson layer "
                 "with identifier '{}'. Disabling layer.", identifier()
             ));
@@ -625,7 +625,7 @@ void GeoJsonComponent::readFile() {
         }
     }
     catch (const geos::util::GEOSException& e) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Error creating GeoJson layer with identifier '{}'. Problem reading "
             "GeoJson file '{}'. Error: {}", identifier(), _geoJsonFile.value(), e.what()
         ));
@@ -646,7 +646,7 @@ void GeoJsonComponent::parseSingleFeature(const geos::io::GeoJSONFeature& featur
     std::vector<const geos::geom::Geometry*> geomsToAdd;
     if (!geom) {
         // Null geometry => no geometries to add
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "Feature {} in GeoJson file '{}' is a null geometry and will not be loaded",
             indexInFile, _geoJsonFile.value()
         ));
@@ -683,7 +683,7 @@ void GeoJsonComponent::parseSingleFeature(const geos::io::GeoJSONFeature& featur
             // If there is already an owner with that name as an identifier, make a
             // unique one
             if (_featuresPropertyOwner.hasPropertySubOwner(identifier)) {
-                identifier = fmt::format("Feature{}-", index, identifier);
+                identifier = std::format("Feature{}-", index, identifier);
             }
 
             const properties::PropertyOwner::PropertyOwnerInfo info = {
@@ -698,7 +698,7 @@ void GeoJsonComponent::parseSingleFeature(const geos::io::GeoJSONFeature& featur
             _featuresPropertyOwner.addPropertySubOwner(_features.back().get());
         }
         catch (const ghoul::RuntimeError& error) {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Error creating GeoJson layer with identifier '{}'. Problem reading "
                 "feature {} in GeoJson file '{}'.",
                 identifier(), indexInFile, _geoJsonFile.value()
@@ -835,7 +835,7 @@ void GeoJsonComponent::flyToFeature(std::optional<int> index) const {
     float lon = centroidLon + _latLongOffset.value().y;
 
     global::scriptEngine->queueScript(
-        fmt::format(
+        std::format(
             "openspace.globebrowsing.flyToGeo([[{}]], {}, {}, {})",
             _globeNode.owner()->identifier(), lat, lon, d
         ),
@@ -846,7 +846,7 @@ void GeoJsonComponent::flyToFeature(std::optional<int> index) const {
 
 void GeoJsonComponent::triggerDeletion() const {
     global::scriptEngine->queueScript(
-        fmt::format(
+        std::format(
             "openspace.globebrowsing.deleteGeoJson([[{}]], [[{}]])",
             _globeNode.owner()->identifier(), _identifier
         ),

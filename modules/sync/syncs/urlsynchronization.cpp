@@ -31,6 +31,7 @@
 #include <openspace/util/time.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
+#include <ghoul/misc/stringhelper.h>
 #include <numeric>
 #include <mutex>
 #include <optional>
@@ -69,7 +70,9 @@ namespace {
 
         // This variable determines the validity period of a file(s) in seconds before it
         // needs to be re-downloaded. The default value keeps the file permanently cached,
-        // while a value of 0 forces the file to be downloaded on every startup.
+        // while a value of 0 forces the file to be downloaded on every startup. If the
+        // symbolic value `math.huge` is used, a file is never redownloaded after the
+        // first time.
         std::optional<double> secondsUntilResync [[codegen::greaterequal(0.0)]];
     };
 #include "urlsynchronization_codegen.cpp"
@@ -99,7 +102,7 @@ UrlSynchronization::UrlSynchronization(const ghoul::Dictionary& dictionary,
     }
 
     if (p.filename.has_value() && _urls.size() > 1) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "UrlSynchronization ({}) requested overwrite filename but specified {} URLs "
             "to download, which is not legal",
             p.identifier, _urls.size()
@@ -128,11 +131,11 @@ UrlSynchronization::UrlSynchronization(const ghoul::Dictionary& dictionary,
         size_t hash = std::hash<std::string>{}(
             std::accumulate(urls.begin(), urls.end(), std::string())
         );
-        _identifier += fmt::format("({})", hash);
+        _identifier += std::format("({})", hash);
     }
 
     if (p.forceOverride.has_value()) {
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "{}: The variable ForceOverride has been deprecated. "
             "Optionally, use SecondsUntilResync instead to specify file validity date.",
             p.identifier
@@ -221,8 +224,11 @@ bool UrlSynchronization::isEachFileValid() {
     // Valid to: yyyy-mm-ddThr:mn:sc.xxx
 
     if (ossyncVersion == "1.0") {
-        std::getline(file >> std::ws, line);
-        std::string& fileIsValidToDate = line;
+        // We need to mutex-protect the access to the time conversion for now
+        std::lock_guard guard(_mutex);
+
+        ghoul::getline(file >> std::ws, line);
+        const std::string& fileIsValidToDate = line;
         const double fileValidAsJ2000 = Time::convertTime(fileIsValidToDate);
 
         const std::string todaysDate = Time::currentWallTime();
@@ -230,7 +236,7 @@ bool UrlSynchronization::isEachFileValid() {
 
         // Issue warning if file is kept but user changed setting to download on startup.
         if ((fileValidAsJ2000 > todaysDateAsJ2000) && _secondsUntilResync == 0) {
-            LWARNING(fmt::format(
+            LWARNING(std::format(
                 "{}: File is valid to {} but asset specifies SecondsUntilResync = {} "
                 "Did you mean to re-download the file? If so, remove file from sync "
                 "folder to resync",
@@ -247,7 +253,7 @@ bool UrlSynchronization::isEachFileValid() {
         return false;
     }
     else {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "{}: Unknown ossync version number read. Got {} while {} and below are valid",
             _identifier, ossyncVersion, OssyncVersionNumber
         ));
@@ -258,6 +264,9 @@ bool UrlSynchronization::isEachFileValid() {
 }
 
 void UrlSynchronization::createSyncFile(bool) const {
+    // We need to mutex-protect the access to the time conversion for now
+    std::lock_guard guard(_mutex);
+
     std::filesystem::path dir = directory();
     std::filesystem::create_directories(dir);
 
@@ -279,7 +288,7 @@ void UrlSynchronization::createSyncFile(bool) const {
         "YYYY-MM-DDTHR:MN:SC.###"
     );
 
-    const std::string msg = fmt::format("{}\n{}\n", OssyncVersionNumber, fileIsValidTo);
+    const std::string msg = std::format("{}\n{}\n", OssyncVersionNumber, fileIsValidTo);
     syncFile << msg;
 }
 
@@ -311,7 +320,7 @@ bool UrlSynchronization::trySyncUrls() {
         std::filesystem::path destination = directory() / (_filename + ".tmp");
 
         if (sizeData.find(url) != sizeData.end()) {
-            LWARNING(fmt::format("{}: Duplicate entry for '{}'", _identifier, url));
+            LWARNING(std::format("{}: Duplicate entry for '{}'", _identifier, url));
             continue;
         }
 
@@ -360,7 +369,7 @@ bool UrlSynchronization::trySyncUrls() {
         d->wait();
         if (!d->hasSucceeded()) {
             failed = true;
-            LERROR(fmt::format("Error downloading file from URL: {}", d->url()));
+            LERROR(std::format("Error downloading file from URL: {}", d->url()));
             continue;
         }
 
@@ -381,7 +390,7 @@ bool UrlSynchronization::trySyncUrls() {
         if (ec) {
             LERRORC(
                 "URLSynchronization",
-                fmt::format("Error renaming file '{}' to '{}'", tempName, originalName)
+                std::format("Error renaming file '{}' to '{}'", tempName, originalName)
             );
 
             failed = true;

@@ -36,10 +36,8 @@ namespace {
     constexpr openspace::properties::Property::PropertyInfo TextureInfo = {
         "URL",
         "Image URL",
-        "Sets the URL of the texture that is displayed on this sphere. If "
-        "this value is changed, the image at the new path will automatically be loaded "
-        "and displayed. This image is expected to be an equirectangular projection",
-        // @VISIBILITY(2.25)
+        "A URL to an image to use as a texture for this sphere. The image is expected "
+        "to be an equirectangular projection.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -53,19 +51,22 @@ namespace {
             [url](const DownloadManager::MemoryFile&) {
                 LDEBUGC(
                     "RenderableSphereImageOnline",
-                    fmt::format("Download to memory finished for image '{}'", url)
+                    std::format("Download to memory finished for image '{}'", url)
                 );
             },
             [url](const std::string& err) {
                 LDEBUGC(
                     "RenderableSphereImageOnline",
-                    fmt::format("Download to memory failed for image '{}': {}", url, err)
+                    std::format("Download to memory failed for image '{}': {}", url, err)
                 );
             }
         );
     }
 
-    struct [[codegen::Dictionary(RenderableSphere)]] Parameters {
+    // A RenderableSphereImageOnline can be used to show an image from an online source
+    // (as a URL) on a sphere in the OpenSpace scene. The image should be provided in an
+    // equirectangular projection, if it is a map that is draped over the sphere.
+    struct [[codegen::Dictionary(RenderableSphereImageOnline)]] Parameters {
         // [[codegen::verbatim(TextureInfo.description)]]
         std::string url [[codegen::key("URL")]];
     };
@@ -75,7 +76,10 @@ namespace {
 namespace openspace {
 
 documentation::Documentation RenderableSphereImageOnline::Documentation() {
-    return codegen::doc<Parameters>("base_renderable_sphere_image_online");
+    return codegen::doc<Parameters>(
+        "base_renderable_sphere_image_online",
+        RenderableSphere::Documentation()
+    );
 }
 
 RenderableSphereImageOnline::RenderableSphereImageOnline(
@@ -120,7 +124,7 @@ void RenderableSphereImageOnline::update(const UpdateData& data) {
         if (imageFile.corrupted) {
             LERRORC(
                 "RenderableSphereImageOnline",
-                fmt::format("Error loading image from URL '{}'", _textureUrl.value())
+                std::format("Error loading image from URL '{}'", _textureUrl.value())
             );
             return;
         }

@@ -24,8 +24,10 @@
 
 #include <modules/imgui/include/guiglobebrowsingcomponent.h>
 
+#ifdef OPENSPACE_MODULE_GLOBEBROWSING_ENABLED
 #include <modules/globebrowsing/globebrowsingmodule.h>
 #include <modules/globebrowsing/src/renderableglobe.h>
+#endif // OPENSPACE_MODULE_GLOBEBROWSING_ENABLED
 #include <modules/imgui/include/imgui_include.h>
 #include <openspace/engine/globals.h>
 #include <openspace/engine/moduleengine.h>
@@ -35,7 +37,7 @@
 #include <openspace/rendering/renderengine.h>
 #include <openspace/scene/scene.h>
 #include <openspace/scripting/scriptengine.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <numeric>
 
@@ -50,6 +52,7 @@ GuiGlobeBrowsingComponent::GuiGlobeBrowsingComponent()
 {}
 
 void GuiGlobeBrowsingComponent::render() {
+#ifdef OPENSPACE_MODULE_GLOBEBROWSING_ENABLED
     GlobeBrowsingModule* module = global::moduleEngine->module<GlobeBrowsingModule>();
     using UrlInfo = GlobeBrowsingModule::UrlInfo;
     using Capabilities = GlobeBrowsingModule::Capabilities;
@@ -270,7 +273,7 @@ void GuiGlobeBrowsingComponent::render() {
     const Capabilities cap = module->capabilities(_currentServer);
 
     if (cap.empty()) {
-        LWARNINGC("GlobeBrowsing", fmt::format("Unknown server '{}'", _currentServer));
+        LWARNINGC("GlobeBrowsing", std::format("Unknown server '{}'", _currentServer));
     }
 
     ImGui::Columns(6, nullptr, false);
@@ -327,7 +330,7 @@ void GuiGlobeBrowsingComponent::render() {
                 layerName.end()
             );
             global::scriptEngine->queueScript(
-                fmt::format(
+                std::format(
                     "openspace.globebrowsing.addLayer(\
                         '{}', \
                         '{}', \
@@ -368,6 +371,9 @@ void GuiGlobeBrowsingComponent::render() {
         ImGui::PopID();
     }
     ImGui::Columns(1);
+#else
+    ImGui::Text("%s", "OpenSpace compiled without GlobeBrowsing support");
+#endif // OPENSPACE_MODULE_GLOBEBROWSING_ENABLED
 }
 
 } // namespace openspace::gui

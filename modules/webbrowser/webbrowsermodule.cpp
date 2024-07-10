@@ -28,6 +28,7 @@
 #include <modules/webbrowser/include/cefhost.h>
 #include <modules/webbrowser/include/eventhandler.h>
 #include <modules/webbrowser/include/screenspacebrowser.h>
+#include <openspace/documentation/documentation.h>
 #include <openspace/engine/globals.h>
 #include <openspace/engine/globalscallbacks.h>
 #include <openspace/engine/windowdelegate.h>
@@ -58,7 +59,7 @@ namespace {
         "Update Browser Between Renderables",
         "Run the message loop of the browser between calls to render individual "
         "renderables. When disabled, the browser message loop only runs "
-        "once per frame",
+        "once per frame.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -66,7 +67,7 @@ namespace {
         "BrowserUpdateInterval",
         "Browser Update Interval",
         "The time in microseconds between running the message loop of the browser. "
-        "Only used if UpdateBrowserBetweenRenderables is true",
+        "Only used if UpdateBrowserBetweenRenderables is true.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -77,11 +78,11 @@ namespace {
      * \return the absolute path to the file
      */
     std::filesystem::path findHelperExecutable() {
-        const std::filesystem::path execLocation = absPath(fmt::format(
+        const std::filesystem::path execLocation = absPath(std::format(
             "${{BIN}}/{}", SubprocessPath
         ));
         if (!std::filesystem::is_regular_file(execLocation)) {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Could not find web helper executable at location: {}", execLocation
             ));
         }
@@ -154,7 +155,7 @@ void WebBrowserModule::internalInitialize(const ghoul::Dictionary& dictionary) {
         _enabled = dictionary.value<bool>("Enabled");
     }
 
-    LDEBUG(fmt::format("CEF using web helper executable: {}", _webHelperLocation));
+    LDEBUG(std::format("CEF using web helper executable: {}", _webHelperLocation));
     _cefHost = std::make_unique<CefHost>(_webHelperLocation.string());
     LDEBUG("Starting CEF... done");
 
@@ -205,7 +206,7 @@ void WebBrowserModule::removeBrowser(BrowserInstance* browser) {
         global::callback::webBrowserPerformanceHotfix = nullptr;
     }
 
-    LDEBUG(fmt::format("Number of browsers stored: {}", _browsers.size()));
+    LDEBUG(std::format("Number of browsers stored: {}", _browsers.size()));
 }
 
 void WebBrowserModule::attachEventHandler(BrowserInstance* browserInstance) {
@@ -222,6 +223,12 @@ void WebBrowserModule::detachEventHandler() {
 
 bool WebBrowserModule::isEnabled() const {
     return _enabled;
+}
+
+std::vector<documentation::Documentation> WebBrowserModule::documentations() const {
+    return {
+        ScreenSpaceBrowser::Documentation()
+    };
 }
 
 /// Logic for the webbrowser performance hotfix, described in globalscallbacks.h

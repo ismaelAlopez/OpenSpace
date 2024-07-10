@@ -30,7 +30,7 @@
 #include <openspace/engine/configuration.h>
 #include <openspace/openspace.h>
 #include <ghoul/filesystem/filesystem.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <sgct/readconfig.h>
 #include <QComboBox>
@@ -96,13 +96,15 @@ namespace {
         );
     } // namespace geometry
 
-    std::optional<Profile> loadProfileFromFile(QWidget* parent, std::string filename) {
+    std::optional<Profile> loadProfileFromFile(QWidget* parent,
+                                               std::filesystem::path filename)
+    {
         // Verify that the file actually exists
         if (!std::filesystem::exists(filename)) {
             QMessageBox::critical(
                 parent,
                 "Exception",
-                QString::fromStdString(fmt::format(
+                QString::fromStdString(std::format(
                     "Could not open profile file '{}'", filename
                 ))
             );
@@ -117,7 +119,7 @@ namespace {
             QMessageBox::critical(
                 parent,
                 "Exception",
-                QString::fromStdString(fmt::format(
+                QString::fromStdString(std::format(
                     "ParsingError exception in '{}': {}, {}",
                     filename, e.component, e.message
                 ))
@@ -128,7 +130,7 @@ namespace {
             QMessageBox::critical(
                 parent,
                 "Exception",
-                QString::fromStdString(fmt::format(
+                QString::fromStdString(std::format(
                     "RuntimeError exception in '{}', component {}: {}",
                     filename, e.component, e.message
                 ))
@@ -153,7 +155,7 @@ namespace {
                     QMessageBox::critical(
                         parent,
                         "Exception",
-                        QString::fromStdString(fmt::format(
+                        QString::fromStdString(std::format(
                             "Error writing data to file '{}' as file is marked hidden",
                             path
                         ))
@@ -165,7 +167,7 @@ namespace {
             QMessageBox::critical(
                 parent,
                 "Exception",
-                QString::fromStdString(fmt::format(
+                QString::fromStdString(std::format(
                     "Error writing data to file '{}': {}", path, e.what()
                 ))
             );
@@ -188,7 +190,7 @@ namespace {
             QMessageBox::critical(
                 parent,
                 "Exception",
-                QString::fromStdString(fmt::format(
+                QString::fromStdString(std::format(
                     "Error writing data to file '{}': {}", path, e.what()
                 ))
             );
@@ -210,14 +212,12 @@ LauncherWindow::LauncherWindow(bool profileEnabled,
                                bool sgctConfigEnabled, std::string sgctConfigName,
                                QWidget* parent)
     : QMainWindow(parent)
-    , _assetPath(absPath(globalConfig.pathTokens.at("ASSETS")).string() + '/')
-    , _userAssetPath(absPath(globalConfig.pathTokens.at("USER_ASSETS")).string() + '/')
-    , _configPath(absPath(globalConfig.pathTokens.at("CONFIG")).string() + '/')
-    , _userConfigPath(absPath(globalConfig.pathTokens.at("USER_CONFIG")).string() + '/')
-    , _profilePath(absPath(globalConfig.pathTokens.at("PROFILES")).string() + '/')
-    , _userProfilePath(
-        absPath(globalConfig.pathTokens.at("USER_PROFILES")).string() + '/'
-    )
+    , _assetPath(absPath(globalConfig.pathTokens.at("ASSETS")) / "")
+    , _userAssetPath(absPath(globalConfig.pathTokens.at("USER_ASSETS")) / "")
+    , _configPath(absPath(globalConfig.pathTokens.at("CONFIG")) / "")
+    , _userConfigPath(absPath(globalConfig.pathTokens.at("USER_CONFIG")) / "")
+    , _profilePath(absPath(globalConfig.pathTokens.at("PROFILES")) / "")
+    , _userProfilePath(absPath(globalConfig.pathTokens.at("USER_PROFILES")) / "")
     , _sgctConfigName(std::move(sgctConfigName))
 {
     Q_INIT_RESOURCE(resources);
@@ -256,7 +256,7 @@ LauncherWindow::LauncherWindow(bool profileEnabled,
     );
     if (std::filesystem::exists(p)) {
         try {
-            setBackgroundImage(p.string());
+            setBackgroundImage(p);
         }
         catch (const std::exception& e) {
             std::cerr << "Error occurrred while reading background images: " << e.what();
@@ -414,7 +414,7 @@ QWidget* LauncherWindow::createCentralWidget() {
     return centralWidget;
 }
 
-void LauncherWindow::setBackgroundImage(const std::string& syncPath) {
+void LauncherWindow::setBackgroundImage(const std::filesystem::path& syncPath) {
     namespace fs = std::filesystem;
 
     // First, we iterate through all folders in the launcher_images sync folder and we get
@@ -444,17 +444,17 @@ void LauncherWindow::setBackgroundImage(const std::string& syncPath) {
     }
 
     // Now we know which folder to use, we will pick an image at random
-    std::vector<std::string> files;
+    std::vector<std::filesystem::path> files;
     for (const fs::directory_entry& p : fs::directory_iterator(latest.path)) {
-        files.push_back(p.path().string());
+        files.push_back(p.path());
     }
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(files.begin(), files.end(), g);
     // We know there has to be at least one folder, so it's fine to just pick the first
     while (!files.empty()) {
-        const std::string& p = files.front();
-        if (std::filesystem::path(p).extension() == ".png") {
+        const std::filesystem::path& p = files.front();
+        if (p.extension() == ".png") {
             // If the top path starts with the png extension, we have found our candidate
             break;
         }
@@ -467,7 +467,7 @@ void LauncherWindow::setBackgroundImage(const std::string& syncPath) {
 
     // There better be at least one file left, but just in in case
     if (!files.empty()) {
-        const std::string& image = files.front();
+        std::string image = files.front().string();
         _backgroundImage->setPixmap(QPixmap(QString::fromStdString(image)));
     }
 }
@@ -481,7 +481,7 @@ void LauncherWindow::populateProfilesList(const std::string& preset) {
     if (!std::filesystem::exists(_profilePath)) {
         LINFOC(
             "LauncherWindow",
-            fmt::format("Could not find profile folder '{}'", _profilePath)
+            std::format("Could not find profile folder '{}'", _profilePath)
         );
         return;
     }
@@ -510,14 +510,14 @@ void LauncherWindow::populateProfilesList(const std::string& preset) {
             QString::fromStdString(path.string())
         );
 
-        // Add toooltip
-        std::optional<Profile> p = loadProfileFromFile(this, path.string());
+        // Add tooltip
+        std::optional<Profile> p = loadProfileFromFile(this, path);
         const int idx = _profileBox->count() - 1;
         if (p.has_value() && (*p).meta.has_value()) {
             const std::optional<std::string>& d = p->meta.value().description;
             if (d.has_value()) {
                 // Tooltip has to be 'rich text' to linebreak properly
-                const QString tooltip = QString::fromStdString(fmt::format(
+                const QString tooltip = QString::fromStdString(std::format(
                     "<p>{}</p>", *d
                 ));
                 _profileBox->setItemData(idx, tooltip, Qt::ToolTipRole);
@@ -549,13 +549,13 @@ void LauncherWindow::populateProfilesList(const std::string& preset) {
         );
 
         // Add toooltip
-        std::optional<Profile> p = loadProfileFromFile(this, path.string());
+        std::optional<Profile> p = loadProfileFromFile(this, path);
         const int idx = _profileBox->count() - 1;
         if (p.has_value() && (*p).meta.has_value()) {
             const std::optional<std::string>& d = p->meta.value().description;
             if (d.has_value()) {
                 // Tooltip has to be 'rich text' to linebreak properly
-                const QString tooltip = QString::fromStdString(fmt::format(
+                const QString tooltip = QString::fromStdString(std::format(
                     "<p>{}</p>", *d
                 ));
                 _profileBox->setItemData(idx, tooltip, Qt::ToolTipRole);
@@ -594,7 +594,7 @@ bool handleConfigurationFile(QComboBox& box, const std::filesystem::directory_en
     if (isJson) {
         std::string tooltipDescription;
         try {
-            const sgct::config::Meta meta = sgct::readMeta(p.path().string());
+            const sgct::config::Meta meta = sgct::readMeta(p.path());
             tooltipDescription = meta.description;
         }
         catch (const sgct::Error&) {
@@ -602,7 +602,7 @@ bool handleConfigurationFile(QComboBox& box, const std::filesystem::directory_en
         }
         if (!tooltipDescription.empty()) {
             const QString toolTip = QString::fromStdString(
-                fmt::format("<p>{}</p>", tooltipDescription)
+                std::format("<p>{}</p>", tooltipDescription)
             );
             box.setItemData(box.count() - 1, toolTip, Qt::ToolTipRole);
         }
@@ -671,7 +671,7 @@ void LauncherWindow::populateWindowConfigsList(const std::string& preset) {
     else {
         LINFOC(
             "LauncherWindow",
-            fmt::format("Could not find config folder '{}'", _configPath)
+            std::format("Could not find config folder '{}'", _configPath)
         );
     }
 
@@ -719,7 +719,6 @@ void LauncherWindow::populateWindowConfigsList(const std::string& preset) {
 
 void LauncherWindow::onNewWindowConfigSelection(int newIndex) {
     const std::filesystem::path pathSelected = absPath(selectedWindowConfig());
-    const std::string fileSelected = pathSelected.string();
     if (newIndex == _windowConfigBoxIndexSgctCfgDefault) {
         _editWindowButton->setEnabled(false);
         _editWindowButton->setToolTip(
@@ -729,19 +728,19 @@ void LauncherWindow::onNewWindowConfigSelection(int newIndex) {
     else if (newIndex >= _preDefinedConfigStartingIdx) {
         _editWindowButton->setEnabled(false);
         _editWindowButton->setToolTip(
-            QString::fromStdString(fmt::format(
+            QString::fromStdString(std::format(
                 "Cannot edit '{}'\nsince it is one of the configuration "
-                "files provided in the OpenSpace installation", fileSelected
+                "files provided in the OpenSpace installation", pathSelected
             ))
         );
     }
     else {
         try {
             sgct::config::GeneratorVersion previewGenVersion =
-                sgct::readConfigGenerator(fileSelected);
+                sgct::readConfigGenerator(pathSelected);
             if (!versionCheck(previewGenVersion)) {
                 _editWindowButton->setEnabled(false);
-                _editWindowButton->setToolTip(QString::fromStdString(fmt::format(
+                _editWindowButton->setToolTip(QString::fromStdString(std::format(
                     "This file does not meet the minimum required version of {}.",
                     versionMin.versionString()
                 )));
@@ -759,14 +758,14 @@ void LauncherWindow::onNewWindowConfigSelection(int newIndex) {
 
 void LauncherWindow::openProfileEditor(const std::string& profile, bool isUserProfile) {
     std::optional<Profile> p;
-    std::string saveProfilePath = isUserProfile ? _userProfilePath : _profilePath;
+    std::filesystem::path savePath = isUserProfile ? _userProfilePath : _profilePath;
     if (profile.empty()) {
         // If the requested profile is the empty string, then we want to create a new one
         p = Profile();
     }
     else {
         // Otherwise, we want to load that profile
-        std::string fullProfilePath = saveProfilePath + profile + ".profile";
+        std::string fullProfilePath = std::format("{}{}.profile", savePath, profile);
         p = loadProfileFromFile(this, std::move(fullProfilePath));
         if (!p.has_value()) {
             return;
@@ -779,16 +778,17 @@ void LauncherWindow::openProfileEditor(const std::string& profile, bool isUserPr
         _assetPath,
         _userAssetPath,
         _profilePath,
-        saveProfilePath,
+        savePath,
         this
     );
     editor.exec();
     if (editor.wasSaved()) {
         if (editor.specifiedFilename() != profile) {
-            saveProfilePath = _userProfilePath;
+            savePath = _userProfilePath;
         }
-        const std::string path =
-            saveProfilePath + editor.specifiedFilename() + ".profile";
+        const std::string path = std::format(
+            "{}{}.profile", savePath, editor.specifiedFilename()
+        );
         saveProfile(this, path, *p);
         populateProfilesList(editor.specifiedFilename());
     }
@@ -812,7 +812,7 @@ void LauncherWindow::editRefusalDialog(const std::string& title, const std::stri
 void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinCfg) {
     using namespace sgct;
 
-    std::string saveWindowCfgPath = isUserWinCfg ? _userConfigPath : _configPath;
+    std::filesystem::path saveWindowPath = isUserWinCfg ? _userConfigPath : _configPath;
     int ret = QDialog::DialogCode::Rejected;
     config::Cluster preview;
     if (winCfg.empty()) {
@@ -822,7 +822,7 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
             handleReturnFromWindowEditor(
                 editor.cluster(),
                 editor.saveFilename(),
-                saveWindowCfgPath
+                saveWindowPath
             );
         }
     }
@@ -831,12 +831,12 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
             config::GeneratorVersion previewGenVersion = readConfigGenerator(winCfg);
             loadFileAndSchemaThenValidate(
                 winCfg,
-                _configPath + "/schema/sgct.schema.json",
+                _configPath / "schema/sgct.schema.json",
                 "This configuration file is unable to generate a proper display"
             );
             loadFileAndSchemaThenValidate(
                 winCfg,
-                _configPath + "/schema/sgcteditor.schema.json",
+                _configPath / "schema/sgcteditor.schema.json",
                 "This configuration file is valid for generating a display, but "
                 "its format does not match the window editor requirements and "
                 "cannot be opened in the editor"
@@ -851,15 +851,15 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
                 }
                 catch (const std::runtime_error& e) {
                     //Re-throw an SGCT error exception with the runtime exception message
-                    throw std::runtime_error(fmt::format(
+                    throw std::runtime_error(std::format(
                         "Importing of this configuration file failed because of a "
                         "problem detected in the readConfig function:\n\n{}", e.what()
                     ));
                 }
-                SgctEdit editor(
+                SgctEdit editor = SgctEdit(
                     preview,
                     winCfg,
-                    saveWindowCfgPath,
+                    saveWindowPath,
                     this
                 );
                 ret = editor.exec();
@@ -867,14 +867,14 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
                     handleReturnFromWindowEditor(
                         editor.cluster(),
                         editor.saveFilename(),
-                        saveWindowCfgPath
+                        saveWindowPath
                     );
                 }
             }
             else {
                 editRefusalDialog(
                     "File Format Version Error",
-                    fmt::format(
+                    std::format(
                         "File '{}' does not meet the minimum required version of {}",
                         winCfg, versionMin.versionString()
                     ),
@@ -885,7 +885,7 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
         catch (const std::runtime_error& e) {
             editRefusalDialog(
                 "Format Validation Error",
-                fmt::format("Parsing error found in file '{}'", winCfg),
+                std::format("Parsing error found in file '{}'", winCfg),
                 e.what()
             );
         }
@@ -894,7 +894,7 @@ void LauncherWindow::openWindowEditor(const std::string& winCfg, bool isUserWinC
 
 void LauncherWindow::handleReturnFromWindowEditor(const sgct::config::Cluster& cluster,
                                                   std::filesystem::path savePath,
-                                                  const std::string& saveWindowCfgPath)
+                                           const std::filesystem::path& saveWindowCfgPath)
 {
     savePath.replace_extension(".json");
     saveWindowConfig(this, savePath, cluster);

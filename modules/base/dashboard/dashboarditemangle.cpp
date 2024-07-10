@@ -50,8 +50,7 @@ namespace {
         "SourceType",
         "Source Type",
         "The type of position that is used as the triangle apex used to calculate the "
-        "angle. The default value is 'Camera'",
-        // @VISIBILITY(2.67)
+        "angle. The default value is 'Camera'.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -61,8 +60,7 @@ namespace {
         "If a scene graph node is selected as type, this value specifies the name of the "
         "node that is to be used as the apex of the triangle used to calculate the "
         "angle. The computed angle is the incident angle to Source in the triangle ("
-        "Source, Reference, Destination)",
-        // @VISIBILITY(2.67)
+        "Source, Reference, Destination).",
         openspace::properties::Property::Visibility::User
     };
 
@@ -71,8 +69,7 @@ namespace {
         "Reference Type",
         "The type of position that is used as the destination of the reference line used "
         "to calculate the angle. The computed angle is the incident angle to Source in "
-        "the triangle (Source, Reference, Destination)",
-        // @VISIBILITY(2.67)
+        "the triangle (Source, Reference, Destination).",
         openspace::properties::Property::Visibility::User
     };
 
@@ -80,8 +77,7 @@ namespace {
         "ReferenceNodeName",
         "Reference Node Name",
         "If a scene graph node is selected as type, this value specifies the name of the "
-        "node that is to be used as the reference direction to compute the angle",
-        // @VISIBILITY(2.67)
+        "node that is to be used as the reference direction to compute the angle.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -90,8 +86,7 @@ namespace {
         "Destination Type",
         "The type of position that is used as the destination to calculate the angle. "
         "The computed angle is the incident angle to Source in the triangle ("
-        "Source, Reference, Destination). The default value for this is 'Focus'",
-        // @VISIBILITY(2.67)
+        "Source, Reference, Destination). The default value for this is 'Focus'.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -99,8 +94,7 @@ namespace {
         "DestinationNodeName",
         "Destination Node Name",
         "If a scene graph node is selected as type, this value specifies the name of the "
-        "node that is to be used as the destination for computing the angle",
-        // @VISIBILITY(2.67)
+        "node that is to be used as the destination for computing the angle.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -269,7 +263,7 @@ void DashboardItemAngle::render(glm::vec2& penPosition) {
 
     std::fill(_buffer.begin(), _buffer.end(), char(0));
     if (glm::length(a) == 0.0 || glm::length(b) == 0) {
-        char* end = fmt::format_to(
+        char* end = std::format_to(
             _buffer.data(),
             "Could not compute angle at {} between {} and {}",
             sourceInfo.second, destinationInfo.second, referenceInfo.second
@@ -278,15 +272,15 @@ void DashboardItemAngle::render(glm::vec2& penPosition) {
             _buffer.data(),
             end - _buffer.data()
         );
-        RenderFont(*_font, penPosition, text);
         penPosition.y -= _font->height();
+        RenderFont(*_font, penPosition, text);
     }
     else {
         const double angle = glm::degrees(
             glm::acos(glm::dot(a, b) / (glm::length(a) * glm::length(b)))
         );
 
-        char* end = fmt::format_to(
+        char* end = std::format_to(
             _buffer.data(),
             "Angle at {} between {} and {}: {} degrees",
             sourceInfo.second, destinationInfo.second, referenceInfo.second, angle
@@ -294,8 +288,8 @@ void DashboardItemAngle::render(glm::vec2& penPosition) {
         const std::string_view text = std::string_view(
             _buffer.data(), end - _buffer.data()
         );
-        RenderFont(*_font, penPosition, text);
         penPosition.y -= _font->height();
+        RenderFont(*_font, penPosition, text);
     }
 }
 

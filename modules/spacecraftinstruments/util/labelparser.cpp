@@ -25,12 +25,13 @@
 #include <modules/spacecraftinstruments/util/labelparser.h>
 
 #include <openspace/util/spicemanager.h>
-#include <ghoul/fmt.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
 #include <ghoul/io/texture/texturereader.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/dictionary.h>
+#include <ghoul/misc/stringhelper.h>
 #include <filesystem>
 #include <fstream>
 
@@ -42,7 +43,8 @@ namespace {
 
 namespace openspace {
 
-LabelParser::LabelParser(std::string fileName, const ghoul::Dictionary& dictionary)
+LabelParser::LabelParser(std::filesystem::path fileName,
+                         const ghoul::Dictionary& dictionary)
     : _fileName(std::move(fileName))
 {
     using ghoul::Dictionary;
@@ -139,7 +141,7 @@ std::string LabelParser::encode(const std::string& line) const {
 bool LabelParser::create() {
     std::filesystem::path sequenceDir = absPath(_fileName);
     if (!std::filesystem::is_directory(sequenceDir)) {
-        LERROR(fmt::format("Could not load label directory '{}'", sequenceDir));
+        LERROR(std::format("Could not load label directory '{}'", sequenceDir));
         return false;
     }
 
@@ -150,22 +152,16 @@ bool LabelParser::create() {
             continue;
         }
 
-        std::string path = e.path().string();
-
-        const size_t position = path.find_last_of('.') + 1;
-        if (position == 0 || position == std::string::npos) {
-            continue;
-        }
-
-        const std::filesystem::path extension = std::filesystem::path(path).extension();
+        const std::filesystem::path path = e.path();
+        const std::filesystem::path extension = path.extension();
         if (extension != ".lbl" && extension != ".LBL") {
             continue;
         }
 
-        std::ifstream file(path);
+        std::ifstream file = std::ifstream(path);
 
         if (!file.good()) {
-            LERROR(fmt::format("Failed to open label file '{}'", path));
+            LERROR(std::format("Failed to open label file '{}'", path));
             return false;
         }
 
@@ -176,7 +172,7 @@ bool LabelParser::create() {
         double stopTime = 0.0;
         std::string line;
         do {
-            std::getline(file, line);
+            ghoul::getline(file, line);
 
             line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
             line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
@@ -195,21 +191,21 @@ bool LabelParser::create() {
             if (read == "TARGET_NAME") {
                 _target = decode(line);
                 if (_target.empty()) {
-                    LWARNING(fmt::format(ErrorMsg, "TARGET_NAME", line, path));
+                    LWARNING(std::format(ErrorMsg, "TARGET_NAME", line, path));
                 }
                 count++;
             }
             if (read == "INSTRUMENT_HOST_NAME") {
                 _instrumentHostID = decode(line);
                 if (_instrumentHostID.empty()) {
-                    LWARNING(fmt::format(ErrorMsg, "INSTRUMENT_HOST_NAME", line, path));
+                    LWARNING(std::format(ErrorMsg, "INSTRUMENT_HOST_NAME", line, path));
                 }
                 count++;
             }
             if (read == "INSTRUMENT_ID") {
                 _instrumentID = decode(line);
                 if (_instrumentID.empty()) {
-                    LWARNING(fmt::format(ErrorMsg, "INSTRUMENT_ID", line, path));
+                    LWARNING(std::format(ErrorMsg, "INSTRUMENT_ID", line, path));
                 }
                 lblName = encode(line);
                 count++;
@@ -217,7 +213,7 @@ bool LabelParser::create() {
             if (read == "DETECTOR_TYPE") {
                 _detectorType = decode(line);
                 if (_detectorType.empty()) {
-                    LWARNING(fmt::format(ErrorMsg, "DETECTOR_TYPE", line, path));
+                    LWARNING(std::format(ErrorMsg, "DETECTOR_TYPE", line, path));
                 }
                 count++;
             }
@@ -228,7 +224,7 @@ bool LabelParser::create() {
                 startTime = SpiceManager::ref().ephemerisTimeFromDate(start);
                 count++;
 
-                std::getline(file, line);
+                ghoul::getline(file, line);
                 line.erase(std::remove(line.begin(), line.end(), '"'), line.end());
                 line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
                 line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
@@ -248,7 +244,7 @@ bool LabelParser::create() {
                     count++;
                 }
                 else{
-                    LERROR(fmt::format(
+                    LERROR(std::format(
                         "Label file '{}' deviates from generic standard", path
                     ));
                     LINFO(
@@ -263,10 +259,9 @@ bool LabelParser::create() {
 
                 count = 0;
 
-                using namespace std::literals;
-                const std::string p = path.substr(0, path.size() - ("lbl"s).size());
                 for (const std::string& ext : extensions) {
-                    const std::string imagePath = p + ext;
+                    std::filesystem::path imagePath = path;
+                    imagePath.replace_extension(ext);
                     if (std::filesystem::is_regular_file(imagePath)) {
                         std::vector<std::string> spiceInstrument;
                         spiceInstrument.push_back(_instrumentID);

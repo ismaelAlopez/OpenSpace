@@ -25,9 +25,9 @@
 #include <modules/gaia/tasks/readfilejob.h>
 
 #include <openspace/util/distanceconversion.h>
-#include <ghoul/misc/dictionary.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
-#include <ghoul/fmt.h>
+#include <ghoul/misc/dictionary.h>
 
 namespace {
     constexpr std::string_view _loggerCat = "ReadFileJob";
@@ -35,9 +35,10 @@ namespace {
 
 namespace openspace::gaia {
 
-ReadFileJob::ReadFileJob(std::string filePath, std::vector<std::string> allColumns,
-                         int firstRow, int lastRow, size_t nDefaultCols,
-                         int nValuesPerStar, std::shared_ptr<FitsFileReader> fitsReader)
+ReadFileJob::ReadFileJob(std::filesystem::path filePath,
+                         std::vector<std::string> allColumns, int firstRow, int lastRow,
+                         size_t nDefaultCols, int nValuesPerStar,
+                         std::shared_ptr<FitsFileReader> fitsReader)
     : _inFilePath(std::move(filePath))
     , _firstRow(firstRow)
     , _lastRow(lastRow)
@@ -59,7 +60,7 @@ void ReadFileJob::execute() {
 
     if (!table) {
         throw ghoul::RuntimeError(
-            fmt::format("Failed to open Fits file '{}'", _inFilePath
+            std::format("Failed to open Fits file '{}'", _inFilePath
         ));
     }
 

@@ -36,7 +36,7 @@
 #include "profile/propertiesdialog.h"
 #include "profile/timedialog.h"
 #include <openspace/scene/profile.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <QDialogButtonBox>
 #include <QKeyEvent>
 #include <QLabel>
@@ -81,7 +81,7 @@ namespace {
             );
 
             std::string name = it != actions.end() ? it->name : "Unknown action";
-            results += fmt::format("{} ({})\n", name, ghoul::to_string(k.key));
+            results += std::format("{} ({})\n", name, ghoul::to_string(k.key));
         }
         return results;
     }
@@ -89,17 +89,17 @@ namespace {
     std::string summarizeProperties(const std::vector<Profile::Property>& properties) {
         std::string results;
         for (openspace::Profile::Property p : properties) {
-            results += fmt::format("{} = {}\n", p.name, p.value);
+            results += std::format("{} = {}\n", p.name, p.value);
         }
         return results;
     }
 } // namespace
 
 ProfileEdit::ProfileEdit(Profile& profile, const std::string& profileName, 
-                         std::string assetBasePath,
-                         std::string userAssetBasePath,
-                         std::string builtInProfileBasePath,
-                         std::string profileBasePath,
+                         std::filesystem::path assetBasePath,
+                         std::filesystem::path userAssetBasePath,
+                         std::filesystem::path builtInProfileBasePath,
+                         std::filesystem::path profileBasePath,
                          QWidget* parent)
     : QDialog(parent)
     , _profile(profile)
@@ -392,8 +392,10 @@ void ProfileEdit::duplicateProfile() {
     while (true) {
         version++;
 
-        const std::string candidate = profile + Separator + std::to_string(version);
-        const std::string candidatePath = _profileBasePath + candidate + ".profile";
+        const std::string candidate = std::format("{}{}{}", profile, Separator, version);
+        const std::string candidatePath = std::format(
+            "{}{}.profile", _profileBasePath, candidate
+        );
 
         if (!std::filesystem::exists(candidatePath)) {
             _profileEdit->setText(QString::fromStdString(candidate));
@@ -489,7 +491,7 @@ void ProfileEdit::approved() {
         return;
     }
 
-    const std::filesystem::path p = fmt::format(
+    const std::filesystem::path p = std::format(
         "{}/{}.profile", _builtInProfilesPath, profileName
     );
     if (std::filesystem::exists(p)) {

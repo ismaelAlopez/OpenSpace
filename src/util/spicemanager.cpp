@@ -26,7 +26,6 @@
 
 #include <openspace/engine/globals.h>
 #include <openspace/scripting/lualibrary.h>
-#include <ghoul/fmt.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
@@ -34,6 +33,7 @@
 #include <ghoul/misc/profiling.h>
 #include <algorithm>
 #include <filesystem>
+#include <format>
 #include "SpiceUsr.h"
 #include "SpiceZpr.h"
 
@@ -100,7 +100,7 @@ SpiceManager::AberrationCorrection::AberrationCorrection(const std::string& iden
     auto it = Mapping.find(identifier);
 
     ghoul_assert(!identifier.empty(), "Identifier may not be empty");
-    ghoul_assert(it != Mapping.end(), fmt::format("Invalid identifer '{}'", identifier));
+    ghoul_assert(it != Mapping.end(), std::format("Invalid identifer '{}'", identifier));
 
     type = it->second.first;
     direction = it->second.second;
@@ -170,7 +170,8 @@ SpiceManager::SpiceManager() {
 
 SpiceManager::~SpiceManager() {
     for (const KernelInformation& i : _loadedKernels) {
-        unload_c(i.path.c_str());
+        const std::string p = i.path.string();
+        unload_c(p.c_str());
     }
 
     // Set values back to default
@@ -214,25 +215,24 @@ void throwSpiceError(const std::string& errorMessage) {
     }
 }
 
-SpiceManager::KernelHandle SpiceManager::loadKernel(std::string filePath) {
+SpiceManager::KernelHandle SpiceManager::loadKernel(std::filesystem::path filePath) {
     ghoul_assert(!filePath.empty(), "Empty file path");
     ghoul_assert(
         std::filesystem::is_regular_file(filePath),
-        fmt::format("File '{}' ({}) does not exist", filePath, absPath(filePath))
+        std::format("File '{}' ({}) does not exist", filePath, absPath(filePath))
     );
     ghoul_assert(
         std::filesystem::is_directory(std::filesystem::path(filePath).parent_path()),
-        fmt::format(
+        std::format(
             "File '{}' exists, but directory '{}' does not",
             absPath(filePath), std::filesystem::path(filePath).parent_path()
         )
     );
 
-    const std::filesystem::path path = absPath(std::move(filePath));
     const auto it = std::find_if(
         _loadedKernels.begin(),
         _loadedKernels.end(),
-        [path](const KernelInformation& info) { return info.path == path; }
+        [filePath](const KernelInformation& info) { return info.path == filePath; }
     );
 
     if (it != _loadedKernels.end()) {
@@ -245,12 +245,13 @@ SpiceManager::KernelHandle SpiceManager::loadKernel(std::string filePath) {
     // kernels
     const std::filesystem::path currentDirectory = std::filesystem::current_path();
 
-    const std::filesystem::path p = path.parent_path();
+    const std::filesystem::path p = filePath.parent_path();
     std::filesystem::current_path(p);
 
-    LINFO(fmt::format("Loading SPICE kernel '{}'", path));
+    LINFO(std::format("Loading SPICE kernel '{}'", filePath));
     // Load the kernel
-    furnsh_c(path.string().c_str());
+    const std::string k = filePath.string();
+    furnsh_c(k.c_str());
 
     // Reset the current directory to the previous one
     std::filesystem::current_path(currentDirectory);
@@ -259,17 +260,25 @@ SpiceManager::KernelHandle SpiceManager::loadKernel(std::string filePath) {
         throwSpiceError("Kernel loading");
     }
 
-    const std::filesystem::path fileExtension = path.extension();
-    if (fileExtension == ".bc" || fileExtension == ".BC") {
-        findCkCoverage(path.string()); // binary ck kernel
+    const std::filesystem::path fileExtension = filePath.extension();
+    if (fileExtension == ".bc" ||
+        fileExtension == ".BC" ||
+        fileExtension == ".ck" ||
+        fileExtension == ".CK")
+    {
+        findCkCoverage(filePath); // binary ck kernel
     }
-    else if (fileExtension == ".bsp" || fileExtension == ".BSP") {
-        findSpkCoverage(path.string()); // binary spk kernel
+    else if (fileExtension == ".bsp" ||
+            fileExtension == ".BSP" ||
+            fileExtension == ".spk" ||
+            fileExtension == ".SPK")
+        {
+            findSpkCoverage(filePath); // spk kernel
     }
 
     const KernelHandle kernelId = ++_lastAssignedKernel;
     ghoul_assert(kernelId != 0, "Kernel Handle wrapped around to 0");
-    _loadedKernels.push_back({ path.string(), kernelId, 1 });
+    _loadedKernels.push_back({ std::move(filePath), kernelId, 1 });
     return kernelId;
 }
 
@@ -287,33 +296,32 @@ void SpiceManager::unloadKernel(KernelHandle kernelId) {
         // If there was only one part interested in the kernel, we can unload it
         if (it->refCount == 1) {
             // No need to check for errors as we do not allow empty path names
-            LINFO(fmt::format("Unloading SPICE kernel '{}'", it->path));
-            unload_c(it->path.c_str());
+            LINFO(std::format("Unloading SPICE kernel '{}'", it->path));
+            const std::string p = it->path.string();
+            unload_c(p.c_str());
             _loadedKernels.erase(it);
         }
         // Otherwise, we hold on to it, but reduce the reference counter by 1
         else {
             it->refCount--;
-            LDEBUG(fmt::format("Reducing reference counter to: {}", it->refCount));
+            LDEBUG(std::format("Reducing reference counter to: {}", it->refCount));
         }
     }
 }
 
-void SpiceManager::unloadKernel(std::string filePath) {
+void SpiceManager::unloadKernel(std::filesystem::path filePath) {
     ghoul_assert(!filePath.empty(), "Empty filename");
-
-    const std::filesystem::path path = absPath(std::move(filePath));
 
     const auto it = std::find_if(
         _loadedKernels.begin(),
         _loadedKernels.end(),
-        [&path](const KernelInformation& info) { return info.path == path; }
+        [&filePath](const KernelInformation& info) { return info.path == filePath; }
     );
 
     if (it == _loadedKernels.end()) {
         if (_useExceptions) {
             throw SpiceException(
-                fmt::format("'{}' did not correspond to a loaded kernel", path)
+                std::format("'{}' did not correspond to a loaded kernel", filePath)
             );
         }
         else {
@@ -323,20 +331,21 @@ void SpiceManager::unloadKernel(std::string filePath) {
     else {
         // If there was only one part interested in the kernel, we can unload it
         if (it->refCount == 1) {
-            LINFO(fmt::format("Unloading SPICE kernel '{}'", path));
-            unload_c(path.string().c_str());
+            LINFO(std::format("Unloading SPICE kernel '{}'", filePath));
+            const std::string p = filePath.string();
+            unload_c(p.c_str());
             _loadedKernels.erase(it);
         }
         else {
             // Otherwise, we hold on to it, but reduce the reference counter by 1
             it->refCount--;
-            LDEBUG(fmt::format("Reducing reference counter to: {}", it->refCount));
+            LDEBUG(std::format("Reducing reference counter to: {}", it->refCount));
         }
     }
 }
 
-std::vector<std::string> SpiceManager::loadedKernels() const {
-    std::vector<std::string> res;
+std::vector<std::filesystem::path> SpiceManager::loadedKernels() const {
+    std::vector<std::filesystem::path> res;
     res.reserve(_loadedKernels.size());
     for (const KernelInformation& info : _loadedKernels) {
         res.push_back(info.path);
@@ -494,7 +503,7 @@ int SpiceManager::naifId(const std::string& body) const {
     SpiceInt id = 0;
     bods2c_c(body.c_str(), &id, &success);
     if (!success && _useExceptions) {
-        throw SpiceException(fmt::format("Could not find NAIF ID of body '{}'", body));
+        throw SpiceException(std::format("Could not find NAIF ID of body '{}'", body));
     }
     return id;
 }
@@ -515,7 +524,7 @@ int SpiceManager::frameId(const std::string& frame) const {
     SpiceInt id = 0;
     namfrm_c(frame.c_str(), &id);
     if (id == 0 && _useExceptions) {
-        throw SpiceException(fmt::format("Could not find NAIF ID of frame '{}'", frame));
+        throw SpiceException(std::format("Could not find NAIF ID of frame '{}'", frame));
     }
     return id;
 }
@@ -540,7 +549,7 @@ void getValueInternal(const std::string& body, const std::string& value, int siz
 
     if (failed_c()) {
         throwSpiceError(
-            fmt::format("Error getting value '{}' for body '{}'", value, body)
+            std::format("Error getting value '{}' for body '{}'", value, body)
         );
     }
 }
@@ -586,7 +595,7 @@ double SpiceManager::spacecraftClockToET(const std::string& craft,
     double et = 0.0;
     sct2e_c(craftId, craftTicks, &et);
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error transforming spacecraft clock of '{}' at time {}", craft, craftTicks
         ));
     }
@@ -603,7 +612,7 @@ double SpiceManager::ephemerisTimeFromDate(const char* timeString) const {
     double et = 0.0;
     str2et_c(timeString, &et);
     if (failed_c()) {
-        throwSpiceError(fmt::format("Error converting date '{}'", timeString));
+        throwSpiceError(std::format("Error converting date '{}'", timeString));
     }
     return et;
 }
@@ -616,7 +625,7 @@ std::string SpiceManager::dateFromEphemerisTime(double ephemerisTime, const char
 
     timout_c(ephemerisTime, format, BufferSize, Buffer.data());
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error converting ephemeris time '{}' to date with format '{}'",
             ephemerisTime, format
         ));
@@ -646,7 +655,7 @@ glm::dvec3 SpiceManager::targetPosition(const std::string& target,
     if (!targetHasCoverage && !observerHasCoverage) {
         if (_useExceptions) {
             throw SpiceException(
-                fmt::format(
+                std::format(
                     "Neither target '{}' nor observer '{}' has SPK coverage at time '{}'",
                     target, observer, ephemerisTime
                 )
@@ -668,7 +677,7 @@ glm::dvec3 SpiceManager::targetPosition(const std::string& target,
             &lightTime
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error getting position from '{}' to '{}' in frame '{}' at time '{}'",
                 target, observer, referenceFrame, ephemerisTime
             ));
@@ -736,7 +745,7 @@ glm::dmat3 SpiceManager::frameTransformationMatrix(const std::string& from,
 
     if (failed_c()) {
         throwSpiceError(
-            fmt::format("Error converting from frame '{}' to frame '{}' at time '{}'",
+            std::format("Error converting from frame '{}' to frame '{}' at time '{}'",
                 from, to, ephemerisTime
             )
         );
@@ -784,7 +793,7 @@ SpiceManager::SurfaceInterceptResult SpiceManager::surfaceIntercept(
     result.interceptFound = (found == SPICETRUE);
 
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error retrieving surface intercept on target '{}' viewed from observer '{}' "
             "in reference frame '{}' at time '{}'",
             target, observer, referenceFrame, ephemerisTime
@@ -821,7 +830,7 @@ bool SpiceManager::isTargetInFieldOfView(const std::string& target,
     );
 
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Checking if target '{}' is in view of instrument '{}' failed",
             target, instrument
         ));
@@ -856,7 +865,7 @@ SpiceManager::TargetStateResult SpiceManager::targetState(const std::string& tar
     );
 
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error retrieving state of target '{}' viewed from observer '{}' in "
             "reference frame '{}' at time '{}'",
             target, observer, referenceFrame, ephemerisTime
@@ -884,7 +893,7 @@ SpiceManager::TransformMatrix SpiceManager::stateTransformMatrix(
         reinterpret_cast<double(*)[6]>(m.data())
     );
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error retrieved state transform matrix from frame '{}' to frame '{}' at "
             "time '{}'",
             sourceFrame, destinationFrame, ephemerisTime
@@ -942,7 +951,7 @@ glm::dmat3 SpiceManager::positionTransformMatrix(const std::string& sourceFrame,
         reinterpret_cast<double(*)[3]>(glm::value_ptr(result))
     );
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error retrieving position transform matrix from '{}' at time '{}' to frame "
             "'{}' at time '{}'",
             sourceFrame, ephemerisTimeFrom, destinationFrame, ephemerisTimeTo
@@ -980,7 +989,7 @@ SpiceManager::FieldOfViewResult SpiceManager::fieldOfView(int instrument) const 
     );
 
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error getting field-of-view parameters for instrument '{}'", instrument
         ));
         return res;
@@ -1039,7 +1048,7 @@ SpiceManager::TerminatorEllipseResult SpiceManager::terminatorEllipse(
         reinterpret_cast<double(*)[3]>(res.terminatorPoints.data())
     );
     if (failed_c()) {
-        throwSpiceError(fmt::format(
+        throwSpiceError(std::format(
             "Error getting terminator ellipse for target '{}' from observer '{}' in "
             "frame '{}' with light source '{}' at time '{}'",
             target, observer, frame, lightSource, ephemerisTime
@@ -1048,11 +1057,11 @@ SpiceManager::TerminatorEllipseResult SpiceManager::terminatorEllipse(
     return res;
 }
 
-void SpiceManager::findCkCoverage(const std::string& path) {
+void SpiceManager::findCkCoverage(const std::filesystem::path& path) {
     ghoul_assert(!path.empty(), "Empty file path");
     ghoul_assert(
         std::filesystem::is_regular_file(path),
-        fmt::format("File '{}' does not exist", path)
+        std::format("File '{}' does not exist", path)
     );
 
     constexpr unsigned int MaxObj = 1024;
@@ -1069,7 +1078,8 @@ void SpiceManager::findCkCoverage(const std::string& path) {
     SPICEINT_CELL(ids, MaxObj);
     SPICEDOUBLE_CELL(cover, WinSiz);
 
-    ckobj_c(path.c_str(), &ids);
+    const std::string p = path.string();
+    ckobj_c(p.c_str(), &ids);
     if (failed_c()) {
         throwSpiceError("Error finding Ck Coverage");
     }
@@ -1084,7 +1094,7 @@ void SpiceManager::findCkCoverage(const std::string& path) {
 #endif
 
         scard_c(0, &cover);
-        ckcov_c(path.c_str(), frame, SPICEFALSE, "SEGMENT", 0.0, "TDB", &cover);
+        ckcov_c(p.c_str(), frame, SPICEFALSE, "SEGMENT", 0.0, "TDB", &cover);
         if (failed_c()) {
             throwSpiceError("Error finding Ck Coverage");
         }
@@ -1108,11 +1118,11 @@ void SpiceManager::findCkCoverage(const std::string& path) {
     }
 }
 
-void SpiceManager::findSpkCoverage(const std::string& path) {
+void SpiceManager::findSpkCoverage(const std::filesystem::path &path) {
     ghoul_assert(!path.empty(), "Empty file path");
     ghoul_assert(
         std::filesystem::is_regular_file(path),
-        fmt::format("File '{}' does not exist", path)
+        std::format("File '{}' does not exist", path)
     );
 
     constexpr unsigned int MaxObj = 1024;
@@ -1129,7 +1139,8 @@ void SpiceManager::findSpkCoverage(const std::string& path) {
     SPICEINT_CELL(ids, MaxObj);
     SPICEDOUBLE_CELL(cover, WinSiz);
 
-    spkobj_c(path.c_str(), &ids);
+    const std::string p = path.string();
+    spkobj_c(p.c_str(), &ids);
     if (failed_c()) {
         throwSpiceError("Error finding Spk ID for coverage");
     }
@@ -1144,7 +1155,7 @@ void SpiceManager::findSpkCoverage(const std::string& path) {
 #endif
 
         scard_c(0, &cover);
-        spkcov_c(path.c_str(), obj, &cover);
+        spkcov_c(p.c_str(), obj, &cover);
         if (failed_c()) {
             throwSpiceError("Error finding Spk coverage");
         }
@@ -1193,7 +1204,7 @@ glm::dvec3 SpiceManager::getEstimatedPosition(const std::string& target,
     if (_spkCoverageTimes.find(targetId) == _spkCoverageTimes.end()) {
         if (_useExceptions) {
             // no coverage
-            throw SpiceException(fmt::format("No position for '{}' at any time", target));
+            throw SpiceException(std::format("No position for '{}' at any time", target));
         }
         else {
             return glm::dvec3(0.0);
@@ -1215,7 +1226,7 @@ glm::dvec3 SpiceManager::getEstimatedPosition(const std::string& target,
             &lightTime
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating position for '{}' with observer '{}' in frame '{}'",
                 target, observer, referenceFrame
             ));
@@ -1234,7 +1245,7 @@ glm::dvec3 SpiceManager::getEstimatedPosition(const std::string& target,
             &lightTime
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating position for '{}' with observer '{}' in frame '{}'",
                 target, observer, referenceFrame
             ));
@@ -1269,7 +1280,7 @@ glm::dvec3 SpiceManager::getEstimatedPosition(const std::string& target,
         );
 
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating position for '{}' with observer '{}' in frame '{}'",
                 target, observer, referenceFrame
             ));
@@ -1294,7 +1305,7 @@ glm::dmat3 SpiceManager::getEstimatedTransformMatrix(const std::string& fromFram
     if (_ckCoverageTimes.find(idFrame) == _ckCoverageTimes.end()) {
         if (_useExceptions) {
             // no coverage
-            throw SpiceException(fmt::format(
+            throw SpiceException(std::format(
                 "No data available for transform matrix from '{}' to '{}' at any time",
                 fromFrame, toFrame
             ));
@@ -1315,7 +1326,7 @@ glm::dmat3 SpiceManager::getEstimatedTransformMatrix(const std::string& fromFram
             reinterpret_cast<double(*)[3]>(glm::value_ptr(result))
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating transform matrix from '{}' to from '{}' at time '{}'",
                 fromFrame, toFrame, time
             ));
@@ -1330,7 +1341,7 @@ glm::dmat3 SpiceManager::getEstimatedTransformMatrix(const std::string& fromFram
             reinterpret_cast<double(*)[3]>(glm::value_ptr(result))
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating transform matrix from frame '{}' to '{}' at time '{}'",
                 fromFrame, toFrame, time
             ));
@@ -1349,7 +1360,7 @@ glm::dmat3 SpiceManager::getEstimatedTransformMatrix(const std::string& fromFram
             reinterpret_cast<double(*)[3]>(glm::value_ptr(earlierTransform))
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating transform matrix from frame '{}' to '{}' at time '{}'",
                 fromFrame, toFrame, time
             ));
@@ -1363,7 +1374,7 @@ glm::dmat3 SpiceManager::getEstimatedTransformMatrix(const std::string& fromFram
             reinterpret_cast<double(*)[3]>(glm::value_ptr(laterTransform))
         );
         if (failed_c()) {
-            throwSpiceError(fmt::format(
+            throwSpiceError(std::format(
                 "Error estimating transform matrix from frame '{}' to '{}' at time '{}'",
                 fromFrame, toFrame, time
             ));
@@ -1537,7 +1548,7 @@ const std::filesystem::path path = std::filesystem::temp_directory_path();
         std::ofstream f(file);
         f << Naif00012tlsSource;
     }
-    loadKernel(file.string());
+    loadKernel(file);
     std::filesystem::remove(file);
 }
 
@@ -1671,7 +1682,7 @@ References:
           std::ofstream f(file);
           f << GeoPhysicalConstantsKernelSource;
       }
-      loadKernel(file.string());
+      loadKernel(file);
       std::filesystem::remove(file);
 }
 

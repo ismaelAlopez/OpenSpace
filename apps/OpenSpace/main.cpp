@@ -30,8 +30,8 @@
 #include <openspace/engine/windowdelegate.h>
 #include <openspace/interaction/joystickinputstate.h>
 #include <openspace/openspace.h>
+#include <ghoul/format.h>
 #include <ghoul/ghoul.h>
-#include <ghoul/fmt.h>
 #include <ghoul/glm.h>
 #include <ghoul/cmdparser/commandlineparser.h>
 #include <ghoul/cmdparser/multiplecommand.h>
@@ -140,7 +140,7 @@ LONG WINAPI generateMiniDump(EXCEPTION_POINTERS* exceptionPointers) {
         LINFO(s);
     }
 
-    std::string dumpFile = fmt::format(
+    std::string dumpFile = std::format(
         "OpenSpace_{}_{}_{}-{}-{}-{}-{}-{}-{}--{}--{}.dmp",
         OPENSPACE_VERSION_MAJOR,
         OPENSPACE_VERSION_MINOR,
@@ -155,7 +155,7 @@ LONG WINAPI generateMiniDump(EXCEPTION_POINTERS* exceptionPointers) {
         GetCurrentThreadId()
     );
 
-    LINFO(fmt::format("Creating dump file: {}", dumpFile));
+    LINFO(std::format("Creating dump file: {}", dumpFile));
 
     HANDLE hDumpFile = CreateFileA(
         dumpFile.c_str(),
@@ -282,7 +282,7 @@ void mainInitFunc(GLFWwindow*) {
     // We save the startup value of the screenshots just in case we want to add a date
     // to them later in the RenderEngine
     std::filesystem::path screenshotPath = absPath("${SCREENSHOTS}");
-    sgct::Settings::instance().setCapturePath(screenshotPath.string());
+    sgct::Settings::instance().setCapturePath(screenshotPath);
     FileSys.registerPathToken("${STARTUP_SCREENSHOT}", std::move(screenshotPath));
 
     LDEBUG("Initializing OpenSpace Engine started");
@@ -296,7 +296,8 @@ void mainInitFunc(GLFWwindow*) {
         int x = 0;
         int y = 0;
         int n = 0;
-        unsigned char* data = stbi_load(path.string().c_str(), &x, &y, &n, 0);
+        const std::string p = path.string();
+        unsigned char* data = stbi_load(p.c_str(), &x, &y, &n, 0);
 
         GLFWimage icon;
         icon.pixels = data;
@@ -826,7 +827,7 @@ void setSgctDelegateFunctions() {
         glfwGetWindowContentScale(dpiWindow->windowHandle(), &scale.x, &scale.y);
 
         if (scale.x != scale.y) {
-            LWARNING(fmt::format(
+            LWARNING(std::format(
                 "Non-square window scaling detected ({0}x{1}), using {0}x{0} instead",
                 scale.x, scale.y
             ));
@@ -991,34 +992,9 @@ void setSgctDelegateFunctions() {
 
         return mousePosition;
     };
-}
-
-void checkCommandLineForSettings(int& argc, char** argv, bool& hasSGCT, bool& hasProfile,
-                                 std::string& sgctFunctionName)
-{
-    for (int i = 1; i < argc; i++) {
-        const std::string arg = argv[i];
-        if (arg == "-c" || arg == "--config") {
-            std::string p = ((i + 1) < argc) ? argv[i + 1] : "";
-            p.erase(std::remove_if(p.begin(), p.end(), ::isspace), p.end());
-
-            const std::string sgctAssignment = "SGCTConfig=";
-            const size_t findSgct = p.find(sgctAssignment);
-            const size_t findBracket = p.find('}');
-            if (findSgct != std::string::npos) {
-                if (findBracket != std::string::npos) {
-                    sgctFunctionName = arg.substr(
-                        findSgct + sgctAssignment.length(),
-                        findBracket - findSgct
-                    );
-                }
-                hasSGCT = true;
-            }
-            if (p.find("Profile=") != std::string::npos) {
-                hasProfile = true;
-            }
-        }
-    }
+    sgctDelegate.setStatisticsGraphScale = [](float scale) {
+        sgct::Engine::instance().setStatsGraphScale(scale);
+    };
 }
 
 std::string setWindowConfigPresetForGui(const std::string& labelFromCfgFile,
@@ -1029,7 +1005,7 @@ std::string setWindowConfigPresetForGui(const std::string& labelFromCfgFile,
     std::string preset;
     const bool sgctCfgFileSpecifiedByLua = !config.sgctConfigNameInitialized.empty();
     if (haveCliSGCTConfig) {
-        preset = fmt::format("{} (from CLI)", config.windowConfiguration);
+        preset = std::format("{} (from CLI)", config.windowConfiguration);
     }
     else if (sgctCfgFileSpecifiedByLua) {
         preset = config.sgctConfigNameInitialized + labelFromCfgFile;
@@ -1066,7 +1042,7 @@ std::string selectedSgctProfileFromLauncher(LauncherWindow& lw, bool hasCliSGCTC
                     config += ".json";
                 }
                 else {
-                    throw ghoul::RuntimeError(fmt::format(
+                    throw ghoul::RuntimeError(std::format(
                         "Error loading configuration file '{}'. File could not be found",
                         config
                     ));
@@ -1085,6 +1061,8 @@ std::string selectedSgctProfileFromLauncher(LauncherWindow& lw, bool hasCliSGCTC
 
 
 int main(int argc, char* argv[]) {
+    ZoneScoped;
+
 #ifdef OPENSPACE_BREAK_ON_FLOATING_POINT_EXCEPTION
     _clearfp();
     _controlfp(_controlfp(0, 0) & ~(_EM_ZERODIVIDE | _EM_OVERFLOW), _MCW_EM);
@@ -1119,7 +1097,7 @@ int main(int argc, char* argv[]) {
         std::filesystem::current_path() / std::filesystem::path(argv[0]).parent_path(),
         ghoul::filesystem::FileSystem::Override::Yes
     );
-    LDEBUG(fmt::format("Registering ${{BIN}} to '{}'", absPath("${BIN}")));
+    LDEBUG(std::format("Registering ${{BIN}} to '{}'", absPath("${BIN}")));
 
     //
     // Parse commandline arguments
@@ -1203,11 +1181,11 @@ int main(int argc, char* argv[]) {
         if (!std::filesystem::is_regular_file(configurationFilePath)) {
             LFATALC(
                 "main",
-                fmt::format("Could not find configuration '{}'", configurationFilePath)
+                std::format("Could not find configuration '{}'", configurationFilePath)
             );
             exit(EXIT_FAILURE);
         }
-        LINFO(fmt::format("Configuration Path '{}'", configurationFilePath));
+        LINFO(std::format("Configuration Path '{}'", configurationFilePath));
 
         // Register the base path as the directory where the configuration file lives
         std::filesystem::path base = configurationFilePath.parent_path();
@@ -1234,7 +1212,7 @@ int main(int argc, char* argv[]) {
         // Loading configuration from disk
         LDEBUG("Loading configuration from disk");
         *global::configuration = loadConfigurationFromFile(
-            configurationFilePath.string(),
+            configurationFilePath,
             findSettings(),
             size
         );
@@ -1265,7 +1243,7 @@ int main(int argc, char* argv[]) {
                     properties::Property::Visibility::Developer;
             }
             else {
-                throw ghoul::RuntimeError(fmt::format(
+                throw ghoul::RuntimeError(std::format(
                     "Unknown property visibility value '{}'",
                     *commandlineArguments.propertyVisibility
                 ));
@@ -1329,8 +1307,8 @@ int main(int argc, char* argv[]) {
             QMessageBox::warning(
                 nullptr,
                 "OpenSpace",
-                QString::fromStdString(fmt::format(
-                    "The OpenSpace folder is started must not contain any of \"'\", "
+                QString::fromStdString(std::format(
+                    "The OpenSpace folder is started from must not contain any of \"'\", "
                     "\"\"\", [, or ]. Path is: {}. Unexpected errors will occur when "
                     "proceeding to run the software", pwd
                 ))
@@ -1387,7 +1365,7 @@ int main(int argc, char* argv[]) {
 #endif // WIN32
 
         *global::configuration = loadConfigurationFromFile(
-            configurationFilePath.string(),
+            configurationFilePath,
             findSettings(),
             size
         );

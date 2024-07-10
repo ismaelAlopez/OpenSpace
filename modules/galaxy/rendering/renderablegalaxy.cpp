@@ -35,13 +35,14 @@
 #include <openspace/util/boxgeometry.h>
 #include <openspace/util/distanceconstants.h>
 #include <openspace/util/updatestructures.h>
-#include <ghoul/fmt.h>
-#include <ghoul/glm.h>
 #include <ghoul/filesystem/cachemanager.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
+#include <ghoul/glm.h>
 #include <ghoul/io/texture/texturereader.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/profiling.h>
+#include <ghoul/misc/stringhelper.h>
 #include <ghoul/opengl/ghoul_gl.h>
 #include <ghoul/opengl/openglstatecache.h>
 #include <ghoul/opengl/programobject.h>
@@ -63,29 +64,20 @@ namespace {
         Billboards
     };
 
-    constexpr std::array<const char*, 4> UniformNamesPoints = {
-        "modelMatrix", "viewProjectionMatrix", "eyePosition",
-        "opacityCoefficient"
-    };
-
-    constexpr std::array<const char*, 5> UniformNamesBillboards = {
-        "modelMatrix", "viewProjectionMatrix",
-        "cameraUp", "eyePosition", "psfTexture"
-    };
-
     constexpr openspace::properties::Property::PropertyInfo VolumeRenderingEnabledInfo = {
         "VolumeRenderingEnabled",
         "Volume Rendering",
-        "If this value is enabled, the volume rendering component of the galaxy "
-        "rendering is turned on. Otherwise, the volume rendering is skipped",
+        "Decides whether the volume rendering component of the galaxy rendering should "
+        "be enabled or not. If disabled, the volume rendering is skipped.",
         openspace::properties::Property::Visibility::User
     };
 
     constexpr openspace::properties::Property::PropertyInfo StarRenderingEnabledInfo = {
         "StarRenderingEnabled",
         "Star Rendering",
-        "If this value is enabled, the point-based star rendering component of the "
-        "galaxy rendering is turned on. Otherwise, the volume rendering is skipped",
+        "Decides whether the point-based star rendering component of the galaxy "
+        "rendering should be enabled or not. If disabled, the point-based star rendering "
+        "is skipped.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -94,7 +86,7 @@ namespace {
         "Step Size",
         "Determines the distance between steps taken in the volume rendering. The lower "
         "the number is, the better the rendering looks, but also takes more "
-        "computational resources to render",
+        "computational resources to render.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -103,8 +95,7 @@ namespace {
         "Absorption Multiplier",
         "A unit-less scale factor for the probability of dust absorbing a light "
         "particle. The amount of absorption determines the spectrum of the light that is "
-        "emitted from the galaxy",
-        // @VISIBILITY(2.5)
+        "emitted from the galaxy.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -112,23 +103,21 @@ namespace {
         "EmissionMultiply",
         "Emission Multiplier",
         "A unit-less scale factor for the amount of light being emitted by dust in the "
-        "galaxy",
-        // @VISIBILITY(2.5)
+        "galaxy.",
         openspace::properties::Property::Visibility::User
     };
 
     constexpr openspace::properties::Property::PropertyInfo RotationInfo = {
         "Rotation",
         "Euler rotation",
-        "The internal rotation of the volume rendering in Euler angles",
+        "The internal rotation of the volume rendering in Euler angles.",
         openspace::properties::Property::Visibility::Developer
     };
 
     constexpr openspace::properties::Property::PropertyInfo StarRenderingMethodInfo = {
         "StarRenderingMethod",
         "Star Rendering Method",
-        "This value determines which rendering method is used for visualization of the "
-        "stars",
+        "The rendering method used for visualizing the stars.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -138,7 +127,7 @@ namespace {
         "The ratio of point-like stars that are rendered to produce the overall galaxy "
         "image. At a value of 0, no stars are rendered, at a value of 1 all points "
         "contained in the dataset are rendered. The specific value chosen is a "
-        "compromise between image fidelity and rendering performance",
+        "compromise between image fidelity and rendering performance.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -146,8 +135,7 @@ namespace {
     {
         "Downscale",
         "Downscale Factor Volume Rendering",
-        "This value sets the downscaling factor when rendering the current volume",
-        // @VISIBILITY(2.5)
+        "The downscaling factor used when rendering the volume.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -155,7 +143,7 @@ namespace {
     {
         "Steps",
         "Number of RayCasting Steps",
-        "This value set the number of integration steps during the raycasting procedure",
+        "The number of integration steps used during the raycasting procedure.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -175,8 +163,8 @@ namespace {
         // [[codegen::verbatim(EmissionMultiplyInfo.description)]]
         std::optional<float> emissionMultiply;
 
-        // If this value is specified, the default raycasting shader is overwritten and
-        // the shader found at the provided location is used instead
+        // If specified, the default raycasting shader is overwritten and the shader at
+        // this location is used instead.
         std::optional<std::filesystem::path> raycastingShader;
 
         enum class [[codegen::map(StarRenderingMethod)]] StarRenderingMethod {
@@ -222,7 +210,7 @@ namespace {
         std::ofstream fileStream(file, std::ofstream::binary);
 
         if (!fileStream.good()) {
-            LERROR(fmt::format("Error opening file '{}' for save cache file", file));
+            LERROR(std::format("Error opening file '{}' for save cache file", file));
             return;
         }
 
@@ -301,15 +289,15 @@ RenderableGalaxy::RenderableGalaxy(const ghoul::Dictionary& dictionary)
 
     _rotation = p.rotation.value_or(_rotation);
 
-    _volumeFilename = p.volume.filename.string();
+    _volumeFilename = p.volume.filename;
     _volumeDimensions = p.volume.dimensions;
     _volumeSize = p.volume.size;
     _numberOfRayCastingSteps = p.volume.steps.value_or(_numberOfRayCastingSteps);
     _downScaleVolumeRendering = p.volume.downscale.value_or(_downScaleVolumeRendering);
 
-    _pointsFilename = p.points.filename.string();
+    _pointsFilename = p.points.filename;
     _enabledPointsRatio = p.points.enabledPointsRatio.value_or(_enabledPointsRatio);
-    _pointSpreadFunctionTexturePath = p.points.texture.string();
+    _pointSpreadFunctionTexturePath = p.points.texture;
     _pointSpreadFunctionFile = std::make_unique<ghoul::filesystem::File>(
         _pointSpreadFunctionTexturePath
     );
@@ -361,7 +349,7 @@ void RenderableGalaxy::initialize() {
     );
     const bool hasCachedFile = std::filesystem::is_regular_file(cachedPointsFile);
     if (hasCachedFile) {
-        LINFO(fmt::format("Cached file '{}' used for galaxy point file '{}'",
+        LINFO(std::format("Cached file '{}' used for galaxy point file '{}'",
             cachedPointsFile, _pointsFilename
         ));
 
@@ -454,12 +442,12 @@ void RenderableGalaxy::initializeGL() {
 
     if (!_pointSpreadFunctionTexturePath.empty()) {
         _pointSpreadFunctionTexture = ghoul::io::TextureReader::ref().loadTexture(
-            absPath(_pointSpreadFunctionTexturePath).string(),
+            absPath(_pointSpreadFunctionTexturePath),
             2
         );
 
         if (_pointSpreadFunctionTexture) {
-            LDEBUG(fmt::format(
+            LDEBUG(std::format(
                 "Loaded texture from '{}'", absPath(_pointSpreadFunctionTexturePath)
             ));
             _pointSpreadFunctionTexture->uploadTexture();
@@ -473,16 +461,8 @@ void RenderableGalaxy::initializeGL() {
         );
     }
 
-    ghoul::opengl::updateUniformLocations(
-        *_pointsProgram,
-        _uniformCachePoints,
-        UniformNamesPoints
-    );
-    ghoul::opengl::updateUniformLocations(
-        *_billboardsProgram,
-        _uniformCacheBillboards,
-        UniformNamesBillboards
-    );
+    ghoul::opengl::updateUniformLocations(*_pointsProgram, _uniformCachePoints);
+    ghoul::opengl::updateUniformLocations(*_billboardsProgram, _uniformCacheBillboards);
 
     glGenVertexArrays(1, &_pointsVao);
     glGenBuffers(1, &_positionVbo);
@@ -649,7 +629,7 @@ void RenderableGalaxy::renderPoints(const RenderData& data) {
 
     _pointsProgram->setUniform(_uniformCachePoints.modelMatrix, modelTransform);
     _pointsProgram->setUniform(
-        _uniformCachePoints.cameraViewProjectionMatrix,
+        _uniformCachePoints.viewProjectionMatrix,
         cameraViewProjectionMatrix
     );
 
@@ -700,7 +680,7 @@ void RenderableGalaxy::renderBillboards(const RenderData& data) {
 
     _billboardsProgram->setUniform(_uniformCacheBillboards.modelMatrix, modelTransform);
     _billboardsProgram->setUniform(
-        _uniformCacheBillboards.cameraViewProjectionMatrix,
+        _uniformCacheBillboards.viewProjectionMatrix,
         cameraViewProjectionMatrix
     );
 
@@ -734,10 +714,10 @@ RenderableGalaxy::Result RenderableGalaxy::loadPointFile() {
 
     // Read header for OFF (Object File Format)
     std::string line;
-    std::getline(pointFile, line);
+    ghoul::getline(pointFile, line);
 
     // Read point count
-    std::getline(pointFile, line);
+    ghoul::getline(pointFile, line);
     std::istringstream iss(line);
     int64_t nPoints = 0;
     iss >> nPoints;
@@ -759,7 +739,7 @@ RenderableGalaxy::Result RenderableGalaxy::loadPointFile() {
         float g = 0.f;
         float b = 0.f;
         float a = 0.f;
-        std::getline(pointFile, line);
+        ghoul::getline(pointFile, line);
         std::istringstream issp(line);
         issp >> x >> y >> z >> r >> g >> b >> a;
 
@@ -781,16 +761,18 @@ RenderableGalaxy::Result RenderableGalaxy::loadPointFile() {
 RenderableGalaxy::Result RenderableGalaxy::loadCachedFile(
                                                         const std::filesystem::path& file)
 {
+    ZoneScoped;
+
     std::ifstream fileStream = std::ifstream(file, std::ifstream::binary);
     if (!fileStream.good()) {
-        LERROR(fmt::format("Error opening file '{}' for loading cache file", file));
+        LERROR(std::format("Error opening file '{}' for loading cache file", file));
         return { false, {}, {} };
     }
 
     int8_t cacheVersion = 0;
     fileStream.read(reinterpret_cast<char*>(&cacheVersion), sizeof(int8_t));
     if (cacheVersion != CurrentCacheVersion) {
-        LINFO(fmt::format("Removing cache file '{}' as the version changed", file));
+        LINFO(std::format("Removing cache file '{}' as the version changed", file));
         return { false, {}, {} };
     }
 

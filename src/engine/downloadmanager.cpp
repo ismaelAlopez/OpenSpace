@@ -24,11 +24,12 @@
 
 #include <openspace/engine/downloadmanager.h>
 
-#include <ghoul/fmt.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/assert.h>
+#include <ghoul/misc/stringhelper.h>
 #include <ghoul/misc/thread.h>
 #include <curl/curl.h>
 #include <chrono>
@@ -111,7 +112,7 @@ namespace {
 
 namespace openspace {
 
-DownloadManager::FileFuture::FileFuture(std::string file)
+DownloadManager::FileFuture::FileFuture(std::filesystem::path file)
     : filePath(std::move(file))
 {}
 
@@ -134,21 +135,23 @@ std::shared_ptr<DownloadManager::FileFuture> DownloadManager::downloadFile(
         return nullptr;
     }
 
-    auto future = std::make_shared<FileFuture>(file.filename().string());
+    auto future = std::make_shared<FileFuture>(file.filename());
     errno = 0;
 #ifdef WIN32
     FILE* fp;
-    errno_t error = fopen_s(&fp, file.string().c_str(), "wb");
+    const std::string f = file.string();
+    errno_t error = fopen_s(&fp, f.c_str(), "wb");
     if (error != 0) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Could not open/create file: {}. Errno: {}", file, errno
         ));
     }
 #else
-    FILE* fp = fopen(file.string().c_str(), "wb"); // write binary
+    const std::string f = file.string();
+    FILE* fp = fopen(f.c_str(), "wb"); // write binary
 #endif // WIN32
     if (!fp) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Could not open/create file: {}. Errno: {}", file, errno
         ));
     }
@@ -194,7 +197,7 @@ std::shared_ptr<DownloadManager::FileFuture> DownloadManager::downloadFile(
             else {
                 long rescode = 0;
                 curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rescode);
-                future->errorMessage = fmt::format(
+                future->errorMessage = std::format(
                     "{}. HTTP code: {}", curl_easy_strerror(res), rescode
                 );
             }
@@ -227,7 +230,7 @@ std::future<DownloadManager::MemoryFile> DownloadManager::fetchFile(
                                                           SuccessCallback successCallback,
                                                               ErrorCallback errorCallback)
 {
-    LDEBUG(fmt::format("Start downloading file '{}' into memory", url));
+    LDEBUG(std::format("Start downloading file '{}' into memory", url));
 
     auto downloadFunction = [url, successCb = std::move(successCallback),
                              errorCb = std::move(errorCallback)]()
@@ -261,8 +264,8 @@ std::future<DownloadManager::MemoryFile> DownloadManager::fetchFile(
             if (res == CURLE_OK) {
                 std::string extension = std::string(ct);
                 std::stringstream ss(extension);
-                getline(ss, extension ,'/');
-                getline(ss, extension);
+                ghoul::getline(ss, extension ,'/');
+                ghoul::getline(ss, extension);
                 file.format = extension;
             }
             else {
@@ -278,7 +281,7 @@ std::future<DownloadManager::MemoryFile> DownloadManager::fetchFile(
                 errorCb(err);
             }
             else {
-                LWARNING(fmt::format("Error downloading '{}': {}", url, err));
+                LWARNING(std::format("Error downloading '{}': {}", url, err));
             }
             curl_easy_cleanup(curl);
             // Set a boolean variable in MemoryFile to determine if it is

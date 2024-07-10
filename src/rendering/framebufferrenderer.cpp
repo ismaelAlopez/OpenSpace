@@ -53,20 +53,6 @@ namespace {
 
     constexpr glm::vec4 PosBufferClearVal = glm::vec4(1e32, 1e32, 1e32, 1.f);
 
-    constexpr std::array<const char*, 9> HDRUniformNames = {
-        "hdrFeedingTexture", "blackoutFactor", "hdrExposure", "gamma",
-        "Hue", "Saturation", "Value", "Viewport", "Resolution"
-    };
-
-    constexpr std::array<const char*, 4> FXAAUniformNames = {
-        "renderedTexture", "inverseScreenSize", "Viewport", "Resolution"
-    };
-
-    constexpr std::array<const char*, 4> DownscaledVolumeUniformNames = {
-        "downscaledRenderedVolume", "downscaledRenderedVolumeDepth", "viewport",
-        "resolution"
-    };
-
     constexpr std::string_view ExitFragmentShaderPath =
         "${SHADERS}/framebuffer/exitframebuffer.frag";
     constexpr std::string_view RaycastFragmentShaderPath =
@@ -355,20 +341,11 @@ void FramebufferRenderer::initialize() {
     // Sets back to default FBO
     glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 
-    ghoul::opengl::updateUniformLocations(
-        *_hdrFilteringProgram,
-        _hdrUniformCache,
-        HDRUniformNames
-    );
-    ghoul::opengl::updateUniformLocations(
-        *_fxaaProgram,
-        _fxaaUniformCache,
-        FXAAUniformNames
-    );
+    ghoul::opengl::updateUniformLocations(*_hdrFilteringProgram, _hdrUniformCache);
+    ghoul::opengl::updateUniformLocations(*_fxaaProgram, _fxaaUniformCache);
     ghoul::opengl::updateUniformLocations(
         *_downscaledVolumeProgram,
-        _writeDownscaledVolumeUniformCache,
-        DownscaledVolumeUniformNames
+        _writeDownscaledVolumeUniformCache
     );
 
     global::raycasterManager->addListener(*this);
@@ -625,21 +602,13 @@ void FramebufferRenderer::update() {
     if (_hdrFilteringProgram->isDirty()) {
         _hdrFilteringProgram->rebuildFromFile();
 
-        ghoul::opengl::updateUniformLocations(
-            *_hdrFilteringProgram,
-            _hdrUniformCache,
-            HDRUniformNames
-        );
+        ghoul::opengl::updateUniformLocations(*_hdrFilteringProgram, _hdrUniformCache);
     }
 
     if (_fxaaProgram->isDirty()) {
         _fxaaProgram->rebuildFromFile();
 
-        ghoul::opengl::updateUniformLocations(
-            *_fxaaProgram,
-            _fxaaUniformCache,
-            FXAAUniformNames
-        );
+        ghoul::opengl::updateUniformLocations(*_fxaaProgram, _fxaaUniformCache);
     }
 
     if (_downscaledVolumeProgram->isDirty()) {
@@ -647,8 +616,7 @@ void FramebufferRenderer::update() {
 
         ghoul::opengl::updateUniformLocations(
             *_downscaledVolumeProgram,
-            _writeDownscaledVolumeUniformCache,
-            DownscaledVolumeUniformNames
+            _writeDownscaledVolumeUniformCache
         );
     }
 
@@ -950,18 +918,18 @@ void FramebufferRenderer::updateRaycastData() {
 
         RaycastData data = { .id = nextId++, .namespaceName = "Helper" };
 
-        const std::string& vsPath = raycaster->boundsVertexShaderPath();
-        std::string fsPath = raycaster->boundsFragmentShaderPath();
+        const std::filesystem::path& vsPath = raycaster->boundsVertexShaderPath();
+        std::filesystem::path fsPath = raycaster->boundsFragmentShaderPath();
 
         ghoul::Dictionary dict;
         dict.setValue("rendererData", _rendererData);
-        dict.setValue("fragmentPath", std::move(fsPath));
+        dict.setValue("fragmentPath", fsPath);
         dict.setValue("id", data.id);
 
-        std::string helperPath = raycaster->helperPath();
+        std::filesystem::path helperPath = raycaster->helperPath();
         ghoul::Dictionary helpersDict;
         if (!helperPath.empty()) {
-            helpersDict.setValue("0", std::move(helperPath));
+            helpersDict.setValue("0", helperPath);
         }
         dict.setValue("helperPaths", std::move(helpersDict));
         dict.setValue("raycastPath", raycaster->raycasterPath());
@@ -970,7 +938,7 @@ void FramebufferRenderer::updateRaycastData() {
 
         try {
             _exitPrograms[raycaster] = ghoul::opengl::ProgramObject::Build(
-                fmt::format("Volume {} exit", data.id),
+                std::format("Volume {} exit", data.id),
                 absPath(vsPath),
                 absPath(ExitFragmentShaderPath),
                 dict
@@ -983,7 +951,7 @@ void FramebufferRenderer::updateRaycastData() {
             ghoul::Dictionary outsideDict = dict;
             outsideDict.setValue("getEntryPath", std::string(GetEntryOutsidePath));
             _raycastPrograms[raycaster] = ghoul::opengl::ProgramObject::Build(
-                fmt::format("Volume {} raycast", data.id),
+                std::format("Volume {} raycast", data.id),
                 absPath(vsPath),
                 absPath(RaycastFragmentShaderPath),
                 outsideDict
@@ -996,7 +964,7 @@ void FramebufferRenderer::updateRaycastData() {
             ghoul::Dictionary insideDict = dict;
             insideDict.setValue("getEntryPath", std::string(GetEntryInsidePath));
             _insideRaycastPrograms[raycaster] = ghoul::opengl::ProgramObject::Build(
-                fmt::format("Volume {} inside raycast", data.id),
+                std::format("Volume {} inside raycast", data.id),
                 absPath("${SHADERS}/framebuffer/resolveframebuffer.vert"),
                 absPath(RaycastFragmentShaderPath),
                 insideDict
@@ -1029,7 +997,7 @@ void FramebufferRenderer::updateDeferredcastData() {
         const std::filesystem::path helperPath = caster->helperPath();
         ghoul::Dictionary helpersDict;
         if (!helperPath.empty()) {
-            helpersDict.setValue("0", helperPath.string());
+            helpersDict.setValue("0", helperPath);
         }
         dict.setValue("helperPaths", helpersDict);
 
@@ -1037,7 +1005,7 @@ void FramebufferRenderer::updateDeferredcastData() {
 
         try {
             _deferredcastPrograms[caster] = ghoul::opengl::ProgramObject::Build(
-                fmt::format("Deferred {} raycast", data.id),
+                std::format("Deferred {} raycast", data.id),
                 vsPath,
                 fsPath,
                 dict

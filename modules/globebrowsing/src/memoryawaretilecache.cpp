@@ -39,7 +39,7 @@ namespace {
         "CpuAllocatedTileData",
         "CPU allocated tile data (MB)",
         "This value denotes the amount of RAM memory (in MB) that this tile cache is "
-        "utilizing",
+        "utilizing.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -47,7 +47,7 @@ namespace {
         "GpuAllocatedTileData",
         "GPU allocated tile data (MB)",
         "This value denotes the amount of GPU memory (in MB) that this tile cache is "
-        "utilizing",
+        "utilizing.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -221,6 +221,8 @@ void MemoryAwareTileCache::TextureContainer::reset() {
         ghoul::opengl::Texture::FilterMode::AnisotropicMipMap;
 
     for (size_t i = 0; i < _numTextures; i++) {
+        ZoneScopedN("Texture");
+
         using namespace ghoul::opengl;
 
         std::unique_ptr<Texture> tex = std::make_unique<Texture>(
@@ -235,8 +237,8 @@ void MemoryAwareTileCache::TextureContainer::reset() {
         );
 
         tex->setDataOwnership(Texture::TakeOwnership::Yes);
-        tex->uploadTexture();
         tex->setFilter(mode);
+        tex->uploadTexture();
 
         _textures.push_back(std::move(tex));
     }
@@ -476,7 +478,7 @@ void MemoryAwareTileCache::createTileAndPut(ProviderTileKey key, RawTile rawTile
             );
             tex->setPixelData(rawTile.imageData.release(), Texture::TakeOwnership::Yes);
             rawTile.imageData = nullptr;
-            [[ maybe_unused ]] const size_t expectedSize = tex->expectedPixelDataSize();
+            [[maybe_unused]] const size_t expectedSize = tex->expectedPixelDataSize();
             const size_t numBytes = rawTile.textureInitData->totalNumBytes;
             ghoul_assert(expectedSize == numBytes, "Pixel data size is incorrect");
             _numTextureBytesAllocatedOnCPU += numBytes - previousExpectedDataSize;

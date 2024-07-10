@@ -30,7 +30,7 @@ namespace {
     constexpr openspace::properties::Property::PropertyInfo UniqueBackgroundColors = {
         "UniqueBackgroundColor",
         "Unique Background Color",
-        "If 'true' each index tile will have a unique background color assigned to it",
+        "If 'true' each index tile will have a unique background color assigned to it.",
         openspace::properties::Property::Visibility::Developer
     };
 
@@ -59,7 +59,7 @@ TileIndexTileProvider::TileIndexTileProvider(const ghoul::Dictionary& dictionary
 
 Tile TileIndexTileProvider::tile(const TileIndex& tileIndex) {
     ZoneScoped;
-    const std::string text = fmt::format(
+    const std::string text = std::format(
         "level: {}\nx: {}\ny: {}", tileIndex.level, tileIndex.x, tileIndex.y
     );
     const glm::vec2 position = glm::vec2(

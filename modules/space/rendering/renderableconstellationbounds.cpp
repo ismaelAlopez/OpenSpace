@@ -30,6 +30,7 @@
 #include <openspace/util/updatestructures.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
+#include <ghoul/misc/stringhelper.h>
 #include <ghoul/opengl/programobject.h>
 #include <fstream>
 #include <optional>
@@ -46,16 +47,14 @@ namespace {
     constexpr openspace::properties::Property::PropertyInfo VertexInfo = {
         "File",
         "Vertex File Path",
-        "The file pointed to with this value contains the vertex locations of the "
-        "constellations",
+        "A file that contains the vertex locations of the constellations bounds.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
     constexpr openspace::properties::Property::PropertyInfo ColorInfo = {
         "Color",
-        "Color of constellation lines",
-        "Specifies the color of the constellation lines. The lines are always drawn at "
-        "full opacity",
+        "Color",
+        "The color of the lines.",
         openspace::properties::Property::Visibility::NoviceUser
     };
 
@@ -72,7 +71,10 @@ namespace {
 namespace openspace {
 
 documentation::Documentation RenderableConstellationBounds::Documentation() {
-    return codegen::doc<Parameters>("space_renderable_constellationbounds");
+    return codegen::doc<Parameters>(
+        "space_renderable_constellationbounds",
+        RenderableConstellationsBase::Documentation()
+    );
 }
 
 RenderableConstellationBounds::RenderableConstellationBounds(
@@ -84,7 +86,7 @@ RenderableConstellationBounds::RenderableConstellationBounds(
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
     // Avoid reading files here, instead do it in multithreaded initialize()
-    _vertexFilename = absPath(p.file.string()).string();
+    _vertexFilename = absPath(p.file).string();
     _vertexFilename.onChange([this](){ loadData(); });
     addProperty(_vertexFilename);
 
@@ -114,7 +116,7 @@ void RenderableConstellationBounds::initialize() {
 
                 if (it == options.end()) {
                     // The user has specified a constellation name that doesn't exist
-                    LWARNING(fmt::format(
+                    LWARNING(std::format(
                         "Option '{}' not found in list of constellations", s
                     ));
                 }
@@ -238,7 +240,7 @@ bool RenderableConstellationBounds::loadVertexFile() {
     // a new constellation name, at which point the currentBound is stored away, a new,
     // empty ConstellationBound is created and set at the currentBound
     while (file.good()) {
-        std::getline(file, currentLine);
+        ghoul::getline(file, currentLine);
         if (currentLine.empty()) {
             continue;
         }
@@ -257,7 +259,7 @@ bool RenderableConstellationBounds::loadVertexFile() {
         if (!s.good()) {
             // If this evaluates to true, the stream was not completely filled, which
             // means that the line was incomplete, so there was an error
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Error reading file '{}' at line #{}", fileName, currentLineNumber
             ));
             break;

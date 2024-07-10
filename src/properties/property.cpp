@@ -78,13 +78,9 @@ const std::string& Property::identifier() const {
 
 std::string Property::fullyQualifiedIdentifier() const {
     std::string identifier = _identifier;
-    PropertyOwner* currentOwner = owner();
-    while (currentOwner) {
-        const std::string& ownerId = currentOwner->identifier();
-        if (!ownerId.empty()) {
-            identifier = fmt::format("{}.{}", ownerId, identifier);
-        }
-        currentOwner = currentOwner->owner();
+    const std::string& ownerUri = owner()->uri();
+    if (!ownerUri.empty()) {
+        identifier = std::format("{}.{}", ownerUri, identifier);
     }
     return identifier;
 }
@@ -275,7 +271,7 @@ std::string Property::generateJsonDescription() const {
     const std::string metaData = generateMetaDataJsonDescription();
     const std::string description = generateAdditionalJsonDescription();
 
-    return fmt::format(
+    return std::format(
         R"({{"{}":"{}","{}":"{}","{}":"{}","{}":{},"{}":{}}})",
         TypeKey, cName, IdentifierKey, identifierSan, NameKey, gNameSan, MetaDataKey,
         metaData, AdditionalDataKey, description
@@ -318,7 +314,7 @@ std::string Property::generateMetaDataJsonDescription() const {
         );
     }
 
-    std::string result = fmt::format(
+    std::string result = std::format(
         R"({{"{}":"{}","{}":"{}","{}":{},"{}":{},"{}":{}}})",
         MetaDataKeyGroup, sanitizedGroupId,
         MetaDataKeyVisibility, vis,

@@ -44,34 +44,14 @@ namespace {
     constexpr openspace::properties::Property::PropertyInfo SourceFolderInfo = {
         "SourceFolder",
         "Source Folder",
-        "This value specifies the image directory that is loaded from disk and "
-        "is used as a texture that is applied to this plane",
-        openspace::properties::Property::Visibility::AdvancedUser
-    };
-
-    constexpr openspace::properties::Property::PropertyInfo RenderTypeInfo = {
-       "RenderType",
-       "Render Type",
-       "This value specifies if the plane should be rendered in the Background, "
-       "Opaque, Transparent, or Overlay rendering step",
-        // @VISIBILITY(3.67)
-        openspace::properties::Property::Visibility::AdvancedUser
+       "An image directory that is loaded from disk and contains the textures to use "
+       "for this plane.",
+       openspace::properties::Property::Visibility::AdvancedUser
     };
 
     struct [[codegen::Dictionary(RenderablePlaneTimeVaryingImage)]] Parameters {
         // [[codegen::verbatim(SourceFolderInfo.description)]]
         std::string sourceFolder;
-
-        enum class [[codegen::map(openspace::Renderable::RenderBin)]] RenderType {
-            Background,
-            Opaque,
-            PreDeferredTransparent [[codegen::key("PreDeferredTransparency")]],
-            PostDeferredTransparent [[codegen::key("PostDeferredTransparency")]],
-            Overlay
-        };
-
-        // [[codegen::verbatim(RenderTypeInfo.description)]]
-        std::optional<RenderType> renderType;
     };
 #include "renderableplanetimevaryingimage_codegen.cpp"
 } // namespace
@@ -92,11 +72,9 @@ RenderablePlaneTimeVaryingImage::RenderablePlaneTimeVaryingImage(
 {
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
-    addProperty(_blendMode);
-
     _sourceFolder = p.sourceFolder;
     if (!std::filesystem::is_directory(absPath(_sourceFolder))) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Time varying image, '{}' is not a valid directory",
             _sourceFolder.value()
         ));
@@ -104,13 +82,6 @@ RenderablePlaneTimeVaryingImage::RenderablePlaneTimeVaryingImage(
 
     addProperty(_sourceFolder);
     _sourceFolder.onChange([this]() { _texture = loadTexture(); });
-
-    if (p.renderType.has_value()) {
-        setRenderBin(codegen::map<Renderable::RenderBin>(*p.renderType));
-    }
-    else {
-        setRenderBin(Renderable::RenderBin::Opaque);
-    }
 
     if (dictionary.hasKey(KeyLazyLoading)) {
         _isLoadingLazily = dictionary.value<bool>(KeyLazyLoading);
@@ -145,7 +116,7 @@ void RenderablePlaneTimeVaryingImage::initializeGL() {
     _textureFiles.resize(_sourceFiles.size());
     for (size_t i = 0; i < _sourceFiles.size(); i++) {
         _textureFiles[i] = ghoul::io::TextureReader::ref().loadTexture(
-            absPath(_sourceFiles[i]).string(),
+            absPath(_sourceFiles[i]),
             2
         );
         _textureFiles[i]->setInternalFormat(GL_COMPRESSED_RGBA);
@@ -168,13 +139,13 @@ bool RenderablePlaneTimeVaryingImage::extractMandatoryInfoFromDictionary() {
     namespace fs = std::filesystem;
     for (const fs::directory_entry& e : fs::directory_iterator(sourceFolder)) {
         if (e.is_regular_file()) {
-            _sourceFiles.push_back(e.path().string());
+            _sourceFiles.push_back(e.path());
         }
     }
     std::sort(_sourceFiles.begin(), _sourceFiles.end());
     // Ensure that there are available and valid source files left
     if (_sourceFiles.empty()) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "{}: Plane sequence filepath '{}' was empty",
             _identifier, _sourceFolder.value()
         ));
@@ -246,9 +217,9 @@ void RenderablePlaneTimeVaryingImage::render(const RenderData& data, RendererTas
 
 // Requires time to be formated as such: 'YYYY-MM-DDTHH-MM-SS-XXX'
 void RenderablePlaneTimeVaryingImage::extractTriggerTimesFromFileNames() {
-    for (const std::string& filePath : _sourceFiles) {
+    for (const std::filesystem::path& filePath : _sourceFiles) {
         // Extract the filename from the path (without extension)
-        std::string timeString = std::filesystem::path(filePath).stem().string();
+        std::string timeString = filePath.stem().string();
 
         // Ensure the separators are correct
         timeString.replace(4, 1, "-");

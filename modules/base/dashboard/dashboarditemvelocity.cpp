@@ -45,7 +45,7 @@ namespace {
         "Simplification",
         "If this value is enabled, the velocity is displayed in nuanced units, such as "
         "m/s, AU/s, light years / s etc. If this value is disabled, the unit can be "
-        "explicitly requested",
+        "explicitly requested.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -53,7 +53,7 @@ namespace {
         "RequestedUnit",
         "Requested Unit",
         "If the simplification is disabled, this distance unit is used for the velocity "
-        "display",
+        "display.",
         openspace::properties::Property::Visibility::User
     };
 
@@ -142,14 +142,12 @@ void DashboardItemVelocity::render(glm::vec2& penPosition) {
         dist = std::pair(convertedD, nameForDistanceUnit(unit, convertedD != 1.0));
     }
 
+    penPosition.y -= _font->height();
     RenderFont(
         *_font,
         penPosition,
-        fmt::format(
-            "Camera velocity: {:.4f} {}/s", dist.first, dist.second
-        )
+        std::format("Camera velocity: {:.4f} {}/s", dist.first, dist.second)
     );
-    penPosition.y -= _font->height();
 
     _prevPosition = currentPos;
 }
@@ -169,7 +167,7 @@ glm::vec2 DashboardItemVelocity::size() const {
     }
 
     return _font->boundingBox(
-        fmt::format("Camera velocity: {} {}/s", dist.first, dist.second)
+        std::format("Camera velocity: {} {}/s", dist.first, dist.second)
     );
 }
 

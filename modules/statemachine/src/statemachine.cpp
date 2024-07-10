@@ -25,7 +25,7 @@
 #include <modules/statemachine/include/statemachine.h>
 
 #include <openspace/documentation/documentation.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <fstream>
 #include <optional>
@@ -74,7 +74,7 @@ StateMachine::StateMachine(const ghoul::Dictionary& dictionary) {
             _transitions.push_back(trans);
         }
         else {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Invalid transition from '{}' to '{}'. One or both of the states do not "
                 "exist in the state machine", trans.from(), trans.to()
             ));
@@ -99,7 +99,7 @@ void StateMachine::setInitialState(const std::string& initialState) {
     const int stateIndex = findState(initialState);
 
     if (stateIndex == -1) {
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "Attempting to initialize with undefined state '{}'", initialState
         ));
         return;
@@ -127,7 +127,7 @@ void StateMachine::transitionTo(const std::string& newState) {
 
     const int stateIndex = findState(newState);
     if (stateIndex == -1) {
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "Attempting to transition to undefined state '{}'", newState
         ));
         return;
@@ -135,7 +135,7 @@ void StateMachine::transitionTo(const std::string& newState) {
 
     const int transitionIndex = findTransitionTo(newState);
     if (transitionIndex == -1) {
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "Transition from '{}' to '{}' is undefined",
             currentState()->name(), newState
         ));
@@ -197,12 +197,15 @@ std::vector<std::string> StateMachine::possibleTransitions() const {
     return res;
 }
 
-void StateMachine::saveToDotFile(const std::string& filename) const {
-    const std::string outputFile = filename + ".dot";
+void StateMachine::saveToDotFile(const std::filesystem::path& filename) const {
+    std::filesystem::path outputFile = filename;
+    if (!outputFile.has_extension()) {
+        outputFile.replace_extension(".dot");
+    }
 
-    std::ofstream file(outputFile);
+    std::ofstream file = std::ofstream(outputFile);
     if (!file.good()) {
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Error opening file '{}' for saving state machine dot file", outputFile
         ));
         return;
@@ -210,14 +213,14 @@ void StateMachine::saveToDotFile(const std::string& filename) const {
 
     file << "digraph statemachine {\n";
     for (const State& s : _states) {
-        file << fmt::format("\t{};\n", s.name());
+        file << std::format("\t{};\n", s.name());
     }
     for (const Transition& t : _transitions) {
-        file << fmt::format("\t{} -> {};\n", t.from(), t.to());
+        file << std::format("\t{} -> {};\n", t.from(), t.to());
     }
     file << "}\n";
 
-    LINFO(fmt::format("Saved state machine to file: {}", outputFile));
+    LINFO(std::format("Saved state machine to file: {}", outputFile));
 }
 
 } // namespace openspace

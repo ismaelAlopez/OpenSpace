@@ -59,19 +59,19 @@ documentation::Documentation KameleonDocumentationTask::documentation() {
 KameleonDocumentationTask::KameleonDocumentationTask(const ghoul::Dictionary& dictionary)
 {
     const Parameters p = codegen::bake<Parameters>(dictionary);
-    _inputPath = absPath(p.input.string());
+    _inputPath = absPath(p.input);
     _outputPath = absPath(p.output);
 }
 
 std::string KameleonDocumentationTask::description() {
-    return fmt::format(
+    return std::format(
         "Extract metadata from CDF file '{}' and output HTML documentation to '{}'",
         _inputPath, _outputPath
     );
 }
 
 void KameleonDocumentationTask::perform(const Task::ProgressCallback & progressCallback) {
-    KameleonVolumeReader reader(_inputPath.string());
+    KameleonVolumeReader reader = KameleonVolumeReader(_inputPath.string());
     ghoul::Dictionary kameleonDictionary = reader.readMetaData();
     progressCallback(0.33f);
 

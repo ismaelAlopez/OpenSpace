@@ -36,7 +36,7 @@ namespace {
         "FilePath",
         "File Path",
         "The path of the GDAL file or the image file that is to be used in this tile "
-        "provider",
+        "provider.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -46,15 +46,7 @@ namespace {
         "This value is the preferred size (in pixels) for each tile. Choosing the right "
         "value is a tradeoff between more efficiency (larger images) and better quality "
         "(smaller images). The tile pixel size has to be smaller than the size of the "
-        "complete image if a single image is used",
-        // @VISIBILITY(3.33)
-        openspace::properties::Property::Visibility::AdvancedUser
-    };
-
-    constexpr openspace::properties::Property::PropertyInfo CompressionInfo = {
-        "Compression",
-        "Compression Algorithm",
-        "The compression algorithm to use for MRF cached tiles",
+        "complete image if a single image is used.",
         openspace::properties::Property::Visibility::AdvancedUser
     };
 
@@ -89,7 +81,7 @@ namespace {
             // Specifies whether to use caching or not
             std::optional<bool> enabled;
 
-            // [[codegen::verbatim(CompressionInfo.description)]]
+            // The compression algorithm to use for MRF cached tiles
             enum class [[codegen::map(Compression)]] Compression {
                 PNG = 0,
                 JPEG,
@@ -130,7 +122,7 @@ DefaultTileProvider::DefaultTileProvider(const ghoul::Dictionary& dictionary)
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
     name = p.name.value_or("Name unspecified");
-    const std::string _loggerCat = fmt::format("DefaultTileProvider ({})", name);
+    const std::string _loggerCat = std::format("DefaultTileProvider ({})", name);
 
     // 1. Get required Keys
     _filePath = p.filePath;
@@ -162,7 +154,7 @@ DefaultTileProvider::DefaultTileProvider(const ghoul::Dictionary& dictionary)
     std::string identifier = p.identifier.value_or("unspecified");
     std::string enclosing = p.globeName.value_or("unspecified");
 
-    std::string path = fmt::format("{}/{}/{}/", enclosing, layerGroup, identifier);
+    std::string path = std::format("{}/{}/{}/", enclosing, layerGroup, identifier);
 
     const GlobeBrowsingModule& mod = *global::moduleEngine->module<GlobeBrowsingModule>();
     bool enabled = mod.isMRFCachingEnabled();

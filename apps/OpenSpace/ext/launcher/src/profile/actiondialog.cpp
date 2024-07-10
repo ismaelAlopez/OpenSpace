@@ -27,7 +27,7 @@
 #include "profile/line.h"
 #include "profile/scriptlogdialog.h"
 #include <openspace/util/keys.h>
-#include <ghoul/fmt.h>
+#include <ghoul/format.h>
 #include <ghoul/misc/assert.h>
 #include <QCheckBox>
 #include <QComboBox>
@@ -56,7 +56,7 @@ namespace {
 
     void updateListItem(QListWidgetItem* item, const Profile::Keybinding& kb) {
         ghoul_assert(item, "Item must exist at this point");
-        const std::string n = fmt::format("{}\t{}", ghoul::to_string(kb.key), kb.action);
+        const std::string n = std::format("{}\t{}", ghoul::to_string(kb.key), kb.action);
         item->setText(QString::fromStdString(n));
     }
 } // namespace
@@ -224,7 +224,7 @@ void ActionDialog::createActionWidgets(QGridLayout* layout) {
     _actionWidgets.isLocal->setEnabled(false);
     layout->addWidget(_actionWidgets.isLocal, 5, 2, 1, 2);
 
-    _actionWidgets.chooseScripts = new QPushButton("Choose Scripts");
+    _actionWidgets.chooseScripts = new QPushButton("Add from ScriptLog");
     _actionWidgets.chooseScripts->setToolTip(
         "Press this button to choose scripts for your action from the logs/scriptlog.txt"
     );
@@ -474,7 +474,7 @@ void ActionDialog::actionRemove() {
         const QMessageBox::StandardButton button = QMessageBox::information(
             this,
             "Remove action",
-            QString::fromStdString(fmt::format(
+            QString::fromStdString(std::format(
                 "Action '{}' is used in the keybind '{}' and cannot be removed unless "
                 "the keybind is removed as well. Do you want to remove the keybind as "
                 "well?",
@@ -671,9 +671,9 @@ void ActionDialog::actionRejected() {
 }
 
 void ActionDialog::chooseScripts() {
-    ScriptlogDialog d(this);
+    ScriptLogDialog d(this);
     connect(
-        &d, &ScriptlogDialog::scriptsSelected,
+        &d, &ScriptLogDialog::scriptsSelected,
         this, &ActionDialog::appendScriptsToTextfield
     );
     d.exec();

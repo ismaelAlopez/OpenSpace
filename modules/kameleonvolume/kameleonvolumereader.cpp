@@ -26,9 +26,9 @@
 
 #include <modules/kameleon/include/kameleonwrapper.h>
 #include <modules/volume/rawvolume.h>
-#include <ghoul/fmt.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/dictionary.h>
 #include <filesystem>
@@ -76,14 +76,16 @@ namespace {
 
 namespace openspace::kameleonvolume {
 
-KameleonVolumeReader::KameleonVolumeReader(std::string path) : _path(std::move(path)) {
+KameleonVolumeReader::KameleonVolumeReader(std::filesystem::path path)
+    : _path(std::move(path))
+{
     if (!std::filesystem::is_regular_file(_path)) {
         throw ghoul::FileNotFoundError(_path);
     }
 
-    const long status = _kameleon->open(_path);
+    const long status = _kameleon->open(_path.string());
     if (status != ccmc::FileReader::OK) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Failed to open file '{}' with Kameleon", _path
         ));
     }

@@ -26,10 +26,10 @@
 
 #include <openspace/data/datamapping.h>
 #include <openspace/util/progressbar.h>
-#include <ghoul/fmt.h>
 #include <ghoul/filesystem/cachemanager.h>
 #include <ghoul/filesystem/file.h>
 #include <ghoul/filesystem/filesystem.h>
+#include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
 #include <ghoul/misc/assert.h>
 #include <ghoul/misc/exception.h>
@@ -74,13 +74,9 @@ Dataset loadCsvFile(std::filesystem::path filePath, std::optional<DataMapping> s
 
     LDEBUG("Parsing CSV file");
 
-    std::vector<std::vector<std::string>> rows = ghoul::loadCSVFile(
-        filePath.string(),
-        true
-    );
-
+    std::vector<std::vector<std::string>> rows = ghoul::loadCSVFile(filePath, true);
     if (rows.size() < 2) {
-        LWARNING(fmt::format(
+        LWARNING(std::format(
             "Error loading data file '{}'. No data items read", filePath
         ));
         return Dataset();
@@ -145,7 +141,7 @@ Dataset loadCsvFile(std::filesystem::path filePath, std::optional<DataMapping> s
     if (specs.has_value()) {
         bool hasAllProvided = specs->checkIfAllProvidedColumnsExist(columns);
         if (!hasAllProvided) {
-            LERROR(fmt::format(
+            LERROR(std::format(
                 "Error loading data file {}. Not all columns provided in data mapping "
                 "exists in dataset", filePath
             ));
@@ -156,13 +152,13 @@ Dataset loadCsvFile(std::filesystem::path filePath, std::optional<DataMapping> s
     bool hasTextureIndex = (res.textureDataIndex >= 0);
 
     if (hasProvidedTextureFile && !hasTextureIndex && !specs->textureColumn.has_value()) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Error loading data file {}. No texture column was specified in the data "
             "mapping", filePath
         ));
     }
     if (!hasProvidedTextureFile && hasTextureIndex) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Error loading data file {}. Missing texture map file location in data "
             "mapping", filePath
         ));
@@ -170,12 +166,12 @@ Dataset loadCsvFile(std::filesystem::path filePath, std::optional<DataMapping> s
 
     if (xColumn < 0 || yColumn < 0 || zColumn < 0) {
         // One or more position columns weren't read
-        LERROR(fmt::format(
+        LERROR(std::format(
             "Error loading data file '{}'. Missing X, Y or Z position column", filePath
         ));
     }
 
-    LINFO(fmt::format("Loading {} rows with {} columns", rows.size(), columns.size()));
+    LINFO(std::format("Loading {} rows with {} columns", rows.size(), columns.size()));
     ProgressBar progress = ProgressBar(static_cast<int>(rows.size()));
 
     std::set<int> uniqueTextureIndicesInData;
@@ -239,7 +235,7 @@ Dataset loadCsvFile(std::filesystem::path filePath, std::optional<DataMapping> s
     if (hasProvidedTextureFile) {
         const std::filesystem::path path = *specs->textureMap;
         if (!std::filesystem::is_regular_file(path)) {
-            throw ghoul::RuntimeError(fmt::format(
+            throw ghoul::RuntimeError(std::format(
                 "Failed to open texture map file {}", path
             ));
         }
@@ -256,7 +252,7 @@ std::vector<Dataset::Texture> loadTextureMapFile(std::filesystem::path path,
 
     std::ifstream file(path);
     if (!file.good()) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Failed to open texture map file {}", path
         ));
     }
@@ -266,7 +262,7 @@ std::vector<Dataset::Texture> loadTextureMapFile(std::filesystem::path path,
     std::vector<Dataset::Texture> res;
 
     std::string line;
-    while (std::getline(file, line)) {
+    while (ghoul::getline(file, line)) {
         ghoul::trimWhitespace(line);
         currentLineNumber++;
 
@@ -282,7 +278,7 @@ std::vector<Dataset::Texture> loadTextureMapFile(std::filesystem::path path,
         ));
 
         if (nNonEmptyTokens > 2) {
-            throw ghoul::RuntimeError(fmt::format(
+            throw ghoul::RuntimeError(std::format(
                 "Error loading texture map file {}: Line {} has too many parameters. "
                 "Expected 2: an integer index followed by a filename, where the file "
                 "name may not include whitespaces",
@@ -299,7 +295,7 @@ std::vector<Dataset::Texture> loadTextureMapFile(std::filesystem::path path,
 
         for (const Dataset::Texture& t : res) {
             if (t.index == texture.index) {
-                throw ghoul::RuntimeError(fmt::format(
+                throw ghoul::RuntimeError(std::format(
                     "Error loading texture map file {}: Texture index '{}' defined twice",
                     path, texture.index
                 ));

@@ -44,8 +44,7 @@ namespace {
         "Active Color",
         "This value determines the color that the active instrument is rendered in. "
         "Shortly after activation, the used color is mixture of this and the flash "
-        "color. The default value is (0.6, 1.0, 0.0)",
-        // @VISIBILITY(2.5)
+        "color. The default value is (0.6, 1.0, 0.0).",
         openspace::properties::Property::Visibility::User
     };
 
@@ -53,8 +52,7 @@ namespace {
         "FlashColor",
         "Flash Color",
         "This value determines the color that is used shortly after an instrument "
-        "activation. The default value is (0.9, 1.0, 0.75)",
-        // @VISIBILITY(2.5)
+        "activation. The default value is (0.9, 1.0, 0.75).",
         openspace::properties::Property::Visibility::User
     };
 
@@ -129,7 +127,7 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
     }
     ImageSequencer& sequencer = ImageSequencer::ref();
 
-    penPosition.y -= 25.f;
+    penPosition.y -= _font->height();
 
     constexpr glm::vec4 targetColor(0.f, 0.75f, 1.f, 1.f);
 
@@ -160,7 +158,7 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
         RenderFont(
             *_font,
             penPosition,
-            fmt::format(
+            std::format(
                 "{:4.0f} {:s} |{:s}>{:s}| {:.1f} %",
                 remainingConv.first,
                 remainingConv.second,
@@ -180,7 +178,7 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
         RenderFont(
             *_font,
             penPosition,
-            fmt::format("Data acquisition time: {}", str),
+            std::format("Data acquisition time: {}", str),
             glm::vec4(_activeColor.value(), 1.f),
             ghoul::fontrendering::CrDirection::Down
         );
@@ -203,7 +201,7 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
     RenderFont(
         *_font,
         penPosition,
-        fmt::format(
+        std::format(
             "Next image: [{:02d}:{:02d}:{:02d}]", tlh.count(), tlm.count(), tls.count()
         ),
         targetColor,
@@ -234,7 +232,7 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
             RenderFont(*_font, penPosition, "  |", glm::vec4(0.3f, 0.3f, 0.3f, 1.f));
             RenderFont(*_font,
                 penPosition,
-                fmt::format("    {:5s}", m.first),
+                std::format("    {:5s}", m.first),
                 glm::vec4(_activeColor.value(), 1.f),
                 ghoul::fontrendering::CrDirection::Down
             );
@@ -244,12 +242,16 @@ void DashboardItemInstruments::render(glm::vec2& penPosition) {
             RenderFont(
                 *_font,
                 penPosition,
-                fmt::format("    {:5s}", m.first),
+                std::format("    {:5s}", m.first),
                 glm::vec4(0.3f, 0.3f, 0.3f, 1.f),
                 ghoul::fontrendering::CrDirection::Down
             );
         }
     }
+
+    // The last item added a CR but we want to undo it since it's the next item's
+    // responsibility to move down
+    penPosition.y += _font->height();
 }
 
 glm::vec2 DashboardItemInstruments::size() const {
@@ -279,13 +281,13 @@ glm::vec2 DashboardItemInstruments::size() const {
         size = addToBoundingbox(
             size,
             _font->boundingBox(
-                fmt::format("{:.0f} s {:s} {:.1f} %", remaining, progress, t * 100.f)
+                std::format("{:.0f} s {:s} {:.1f} %", remaining, progress, t * 100.f)
             )
         );
 
         size = addToBoundingbox(
             size,
-            _font->boundingBox(fmt::format("Data acquisition time: {}", str))
+            _font->boundingBox(std::format("Data acquisition time: {}", str))
         );
     }
     const std::pair<double, std::string> nextTarget = sequencer.nextTarget(time);
@@ -323,7 +325,7 @@ glm::vec2 DashboardItemInstruments::size() const {
     size = addToBoundingbox(
         size,
         _font->boundingBox(
-            fmt::format("Data acquisition adjacency: [{}:{}:{}]", hh, mm, ss)
+            std::format("Data acquisition adjacency: [{}:{}:{}]", hh, mm, ss)
         )
     );
 
