@@ -37,12 +37,37 @@ constexpr openspace::properties::Property::PropertyInfo FilePathInfo = {
     " ",
     openspace::properties::Property::Visibility::User
 };
-
 constexpr openspace::properties::Property::PropertyInfo DataPropertyInfo = {
-        "DataProperty",
-        "Name of the data property",
-        "Data property to color the cutplane by",
-        openspace::properties::Property::Visibility::User
+    "DataProperty",
+    "Name of the data property",
+    "Data property to color the cutplane by",
+    openspace::properties::Property::Visibility::User
+};
+constexpr openspace::properties::Property::PropertyInfo AxisInfo = {
+    "Axis",
+    "The x, y or z axis",
+    "Axis to cut the volume on",
+    openspace::properties::Property::Visibility::User
+};
+constexpr openspace::properties::Property::PropertyInfo CutValueInfo = {
+    "CutValue",
+    "A value within the volume dimension",
+    "A value to cut the plane on within the dimension of the selected axis",
+    openspace::properties::Property::Visibility::User
+};
+constexpr openspace::properties::Property::PropertyInfo ColorTablePathsInfo = {
+    "ColorTablePaths",
+    "A local varibale of a local color transfer function",
+    "A list of paths to transferfunction .txt files containing color tables used for "
+    "colorizing the cutplane according to different data properties",
+    openspace::properties::Property::Visibility::User
+};
+constexpr openspace::properties::Property::PropertyInfo ColorTableRangesInfo = {
+    "ColorTableRanges",
+    "Values of a range",
+    "List of ranges for which their corresponding data property values will be colorized "
+    "by. Should be entered as {min value, max value} per range",
+    openspace::properties::Property::Visibility::User
 };
 
 struct [[codegen::Dictionary(RenderableCutPlane)]] Parameters {
@@ -50,6 +75,14 @@ struct [[codegen::Dictionary(RenderableCutPlane)]] Parameters {
     std::filesystem::path input;
     // [[codegen::verbatim(DataPropertyInfo.description)]]
     std::string dataProperty;
+    // [[codegen::verbatim(AxisInfo.description)]]
+    std::string axis;
+    // [[codegen::verbatim(CutValueInfo.description)]]
+    float cutValue;
+    // [[codegen::verbatim(ColorTablePathsInfo.description)]]
+    std::optional<std::vector<std::string>> colorTablePaths;
+    // [[codegen::verbatim(ColorTableRangesInfo.description)]]
+    std::optional<std::vector<glm::vec2>> colorTableRanges;
 };
 #include "renderablecutplane_codegen.cpp"
 } // namespace
@@ -71,6 +104,26 @@ RenderableCutPlane::RenderableCutPlane(const ghoul::Dictionary& dictionary)
 
     _inputPath = absPath(p.input);
     _dataProperty = p.dataProperty;
+    _axis = p.axis;
+    _cutValue = p.cutValue;
+
+    if (p.colorTablePaths.has_value()) {
+        _colorTablePaths = p.colorTablePaths.value();
+    }
+    if (p.colorTableRanges.has_value()) {
+        _colorTableRanges = *p.colorTableRanges;
+    }
+    else {
+        _colorTableRanges.push_back(glm::vec2(0.f, 1.f));
+    }
+
+    if (_inputPath.extension() == ".cdf") {
+        readCdfFile();
+    }
+    if (_inputPath.extension() == ".h5") {
+        readh5File();
+    }
+
 }
 
 void RenderableCutPlane::initialize() {
@@ -78,26 +131,51 @@ void RenderableCutPlane::initialize() {
         throw ghoul::FileNotFoundError(_inputPath.string());
     }
 
+    // Load cdf file
+    //Extract slice from data
+}
+
+void RenderableCutPlane::readCdfFile() {
     std::unique_ptr<ccmc::Kameleon> kameleon = kameleonHelper::createKameleonObject(
         _inputPath.string()
     );
     long status = kameleon->open(_inputPath.string());
     if (status != ccmc::FileReader::OK) {
-        throw ghoul::RuntimeError(fmt::format(
+        throw ghoul::RuntimeError(std::format(
             "Failed to open file '{}' with Kameleon",
             _inputPath
         ));
     }
+    if (!kameleon->doesAttributeExist(_dataProperty)) {
+        LERROR(std::format("'{}' does not exists in data volume", _dataProperty));
+    }
 
-    LINFO(fmt::format("Model name: '{}'", kameleon->getModelName()));
-    std::cout << "Filename: " << kameleon->getCurrentFilename() << std::endl;
-    std::cout << "Number of variables: " << kameleon->getNumberOfVariables() << std::endl;
-    std::cout << "Number of variable attributes: " << kameleon->getNumberOfVariableAttributes() << std::endl;
-    std::cout << "Current time: " << kameleon->getCurrentTime() << std::endl;
+    LINFO(std::format("Model name: '{}'", kameleon->getModelName()));
+    LINFO(std::format("Filename: '{}'", kameleon->getCurrentFilename()));
+    int number = kameleon->getNumberOfVariables();
+    LINFO(std::format("Number of variables: '{}'", number));
+    for (int i = 0; i < number; ++i) {
+        LINFO(std::format("Variable name: '{}'", kameleon->getVariableAttributeName(i)));
+    }
+    int globalnumber = kameleon->getNumberOfGlobalAttributes();
+    LINFO(std::format("Number of global variables: '{}'", globalnumber));
+    for (int i = 0; i < globalnumber; ++i) {
+        LINFO(std::format("global variable name: '{}'", kameleon->getGlobalAttributeName(i)));
+    }
+    LINFO(std::format("Number of variable attributes: '{}'", kameleon->getNumberOfVariableAttributes()));
+    LINFO(std::format("Current time: '{}'", kameleon->getCurrentTime().toString()));
+
+    loadDataFromSlice();
 
 
-    // Load cdf file
-    //Extract slice from data
+
+}
+void RenderableCutPlane::readh5File() {
+
+}
+
+void RenderableCutPlane::loadDataFromSlice() {
+    _slicer = VolumeSlicer(_inputPath, _axis, _cutValue);
 }
 
 void RenderableCutPlane::initializeGL() {
@@ -109,7 +187,7 @@ void RenderableCutPlane::deinitializeGL() {
     //RenderablePlane::deinitializeGL();
 }
 
-void RenderableCutPlane::render(const RenderData& data, RendererTasks& t) {
+void RenderableCutPlane::render(const RenderData& data, RendererTasks& task) {
 
 }
 

@@ -1,5 +1,5 @@
 local transforms = asset.require("scene/solarsystem/planets/earth/transforms")
-local path = "C:/Users/eolsson/Documents/openspace/data/2012/3d__var_1_e20120714-160000-000.out.cdf"
+local path = "C:/Users/eolsson/Documents/openspace/data/2023/marchstorm/cdfs/all/SWMF-01_2023-03-TP-01_080123_2_cdf/GM_CDF/3d__var_1_e20230321-000000-000.out.cdf"
 
 local cutplane = {
   Identifier = "Test-cutplane",

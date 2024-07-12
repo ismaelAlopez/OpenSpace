@@ -27,7 +27,9 @@
 
 
 #include <openspace/rendering/renderable.h>
+#include <openspace/rendering/transferfunction.h>
 #include <modules/base/rendering/renderableplane.h>
+#include <modules/base/util/volumeslicer.h>
 #include <modules/kameleonvolume/kameleonvolumereader.h>
 #include <modules/kameleon/ext/kameleon/src/ccmc/FileReader.h>
 #include <modules/kameleon/ext/kameleon/src/ccmc/GeneralFileReader.h>
@@ -68,6 +70,9 @@ public:
     RenderableCutPlane(const ghoul::Dictionary& dictionary);
 
     void initialize() override;
+    void readCdfFile();
+    void readh5File();
+    void loadDataFromSlice();
     void initializeGL() override;
     void deinitializeGL() override;
 
@@ -82,6 +87,15 @@ private:
     std::filesystem::path _inputPath;
     // What data property to render
     std::string _dataProperty;
+    std::string _axis;
+    std::string _cutValue;
+    std::vector<std::string> _colorTablePaths;
+    std::vector<glm::vec2> _colorTableRanges;
+
+    std::unique_ptr<ghoul::opengl::Texture> _texture = nullptr;
+    std::unique_ptr<TransferFunction> _transferFunction;
+
+    VolumeSlicer _slicer;
 
     std::unique_ptr<ccmc::Kameleon> _kameleon;
     std::unique_ptr<ccmc::Interpolator> _interpolator;
