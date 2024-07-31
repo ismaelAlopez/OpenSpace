@@ -45,8 +45,9 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#include "SpiceUsr.h"
-#include "SpiceZpr.h"
+#include "Spice.hpp"
+//#include "spice2.hpp"
+//#include "Spice.hpp"
 
 #ifdef __clang__
 #pragma clang diagnostic pop

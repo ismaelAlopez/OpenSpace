@@ -44,3 +44,4 @@ doc
 config/schema/sgct.schema.json
 settings.json
 openspace.cfg.override
+ext/spice2

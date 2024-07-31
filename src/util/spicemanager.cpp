@@ -34,8 +34,8 @@
 #include <algorithm>
 #include <filesystem>
 #include <format>
-#include "SpiceUsr.h"
-#include "SpiceZpr.h"
+
+#include "KernelDatabase.hpp"
 
 namespace {
     constexpr std::string_view _loggerCat = "SpiceManager";
@@ -157,12 +157,12 @@ SpiceManager::SpiceManager() {
     // Set the SPICE library to not exit the program if an error occurs
     std::memset(buffer.data(), 0, buffer.size());
     std::strcpy(buffer.data(), "REPORT");
-    erract_c("SET", 0, buffer.data());
+    //erract_c("SET", 0, buffer.data());
 
     // But we do not want SPICE to print the errors, we will fetch them ourselves
     std::memset(buffer.data(), 0, buffer.size());
     std::strcpy(buffer.data(), "NONE");
-    errprt_c("SET", 0, buffer.data());
+    //errprt_c("SET", 0, buffer.data());
 
     loadLeapSecondsSpiceKernel();
     loadGeophysicalConstantsKernel();
@@ -171,12 +171,12 @@ SpiceManager::SpiceManager() {
 SpiceManager::~SpiceManager() {
     for (const KernelInformation& i : _loadedKernels) {
         const std::string p = i.path.string();
-        unload_c(p.c_str());
+        spice2::KernelDatabase::unload(p);
     }
 
     // Set values back to default
-    erract_c("SET", 0, const_cast<char*>("DEFAULT"));
-    errprt_c("SET", 0, const_cast<char*>("DEFAULT"));
+    //erract_c("SET", 0, const_cast<char*>("DEFAULT"));
+    //errprt_c("SET", 0, const_cast<char*>("DEFAULT"));
 }
 
 void SpiceManager::initialize() {
@@ -197,22 +197,6 @@ bool SpiceManager::isInitialized() {
 SpiceManager& SpiceManager::ref() {
     ghoul_assert(isInitialized(), "SpiceManager is not initialized");
     return *_instance;
-}
-
-// This method checks if one of the previous SPICE methods has failed. If it has, an
-// exception with the SPICE error message is thrown
-// If an error occurred, true is returned, otherwise, false
-void throwSpiceError(const std::string& errorMessage) {
-    if (openspace::SpiceManager::ref().exceptionHandling()) {
-        std::string buffer;
-        buffer.resize(SpiceErrorBufferSize);
-        getmsg_c("LONG", SpiceErrorBufferSize, buffer.data());
-        reset_c();
-        throw openspace::SpiceManager::SpiceException(errorMessage + ": " + buffer);
-    }
-    else {
-        reset_c();
-    }
 }
 
 SpiceManager::KernelHandle SpiceManager::loadKernel(std::filesystem::path filePath) {
@@ -251,14 +235,10 @@ SpiceManager::KernelHandle SpiceManager::loadKernel(std::filesystem::path filePa
     LINFO(std::format("Loading SPICE kernel '{}'", filePath));
     // Load the kernel
     const std::string k = filePath.string();
-    furnsh_c(k.c_str());
+    spice2::KernelDatabase::load(k);
 
     // Reset the current directory to the previous one
     std::filesystem::current_path(currentDirectory);
-
-    if (failed_c()) {
-        throwSpiceError("Kernel loading");
-    }
 
     const std::filesystem::path fileExtension = filePath.extension();
     if (fileExtension == ".bc" ||
@@ -298,7 +278,7 @@ void SpiceManager::unloadKernel(KernelHandle kernelId) {
             // No need to check for errors as we do not allow empty path names
             LINFO(std::format("Unloading SPICE kernel '{}'", it->path));
             const std::string p = it->path.string();
-            unload_c(p.c_str());
+            spice2::KernelDatabase::unload(p);
             _loadedKernels.erase(it);
         }
         // Otherwise, we hold on to it, but reduce the reference counter by 1

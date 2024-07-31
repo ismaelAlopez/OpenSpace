@@ -53,8 +53,7 @@ endif ()
 # Spice
 begin_dependency("Spice")
 set(SPICE_BUILD_SHARED_LIBRARY OFF CACHE BOOL "" FORCE)
-add_subdirectory(spice SYSTEM)
-target_compile_features(spice PUBLIC cxx_std_20)
+add_subdirectory(spice2 SYSTEM)
 set_target_properties(spice PROPERTIES FOLDER "External")
 end_dependency()
 
