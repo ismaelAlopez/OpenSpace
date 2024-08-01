@@ -85,6 +85,7 @@ set(HEADER_FILES
   translation/luatranslation.h
   translation/statictranslation.h
   translation/timelinetranslation.h
+  util/volumeslicer.h
 )
 source_group("Header Files" FILES ${HEADER_FILES})
 
@@ -150,6 +151,7 @@ set(SOURCE_FILES
   translation/luatranslation.cpp
   translation/statictranslation.cpp
   translation/timelinetranslation.cpp
+  util/volumeslicer.cpp
 )
 source_group("Source Files" FILES ${SOURCE_FILES})
 

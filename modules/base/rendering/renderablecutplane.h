@@ -72,7 +72,7 @@ public:
     void initialize() override;
     void readCdfFile();
     void readh5File();
-    void loadDataFromSlice();
+    void loadDataFromCDFSlice();
     void initializeGL() override;
     void deinitializeGL() override;
 
@@ -87,6 +87,8 @@ private:
     std::filesystem::path _inputPath;
     // What data property to render
     std::string _dataProperty;
+    properties::OptionProperty _dataProperties;
+
     std::string _axis;
     std::string _cutValue;
     std::vector<std::string> _colorTablePaths;

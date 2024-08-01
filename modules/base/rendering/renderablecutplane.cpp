@@ -24,6 +24,7 @@
 
 #include <modules/base/rendering/renderablecutplane.h>
 #include <modules/kameleonvolume/kameleonvolumereader.h>
+#include <modules/kameleon/ext/kameleon/src/ccmc/KameleonInterpolator.h>
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/logging/logmanager.h>
 #include <filesystem>
@@ -31,14 +32,14 @@
 namespace {
 constexpr std::string_view _loggerCat = "RenderableCutPlane";
 
-constexpr openspace::properties::Property::PropertyInfo FilePathInfo = {
-    "FilePath",
-    "Filepath to the file to create texture from",
-    " ",
-    openspace::properties::Property::Visibility::User
-};
-constexpr openspace::properties::Property::PropertyInfo DataPropertyInfo = {
-    "DataProperty",
+//constexpr openspace::properties::Property::PropertyInfo FilePathInfo = {
+//    "FilePath",
+//    "Filepath to the file to create texture from",
+//    " ",
+//    openspace::properties::Property::Visibility::User
+//};
+constexpr openspace::properties::Property::PropertyInfo DataPropertiesInfo = {
+    "DataProperties",
     "Name of the data property",
     "Data property to color the cutplane by",
     openspace::properties::Property::Visibility::User
@@ -71,9 +72,9 @@ constexpr openspace::properties::Property::PropertyInfo ColorTableRangesInfo = {
 };
 
 struct [[codegen::Dictionary(RenderableCutPlane)]] Parameters {
-    // [[codegen::verbatim(FilePathInfo.description)]]
+    // Filepath to the file to create texture from
     std::filesystem::path input;
-    // [[codegen::verbatim(DataPropertyInfo.description)]]
+    // Data property to color the cutplane by
     std::string dataProperty;
     // [[codegen::verbatim(AxisInfo.description)]]
     std::string axis;
@@ -99,13 +100,18 @@ documentation::Documentation RenderableCutPlane::Documentation() {
 
 RenderableCutPlane::RenderableCutPlane(const ghoul::Dictionary& dictionary)
     : RenderablePlane(dictionary)
+    , _dataProperties(DataPropertiesInfo, properties::OptionProperty::DisplayType::Dropdown)
+
 {
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
     _inputPath = absPath(p.input);
     _dataProperty = p.dataProperty;
+    //dataproperties will need an onchange
     _axis = p.axis;
+    //so will axis
     _cutValue = p.cutValue;
+    // and cutvalue, if not a full plane equation is entered some other way
 
     if (p.colorTablePaths.has_value()) {
         _colorTablePaths = p.colorTablePaths.value();
@@ -146,36 +152,31 @@ void RenderableCutPlane::readCdfFile() {
             _inputPath
         ));
     }
-    if (!kameleon->doesAttributeExist(_dataProperty)) {
-        LERROR(std::format("'{}' does not exists in data volume", _dataProperty));
-    }
 
-    LINFO(std::format("Model name: '{}'", kameleon->getModelName()));
-    LINFO(std::format("Filename: '{}'", kameleon->getCurrentFilename()));
-    int number = kameleon->getNumberOfVariables();
-    LINFO(std::format("Number of variables: '{}'", number));
-    for (int i = 0; i < number; ++i) {
-        LINFO(std::format("Variable name: '{}'", kameleon->getVariableAttributeName(i)));
-    }
-    int globalnumber = kameleon->getNumberOfGlobalAttributes();
-    LINFO(std::format("Number of global variables: '{}'", globalnumber));
-    for (int i = 0; i < globalnumber; ++i) {
-        LINFO(std::format("global variable name: '{}'", kameleon->getGlobalAttributeName(i)));
-    }
-    LINFO(std::format("Number of variable attributes: '{}'", kameleon->getNumberOfVariableAttributes()));
-    LINFO(std::format("Current time: '{}'", kameleon->getCurrentTime().toString()));
 
-    loadDataFromSlice();
 
+    _slicer = VolumeSlicer(_inputPath, _axis, _cutValue, _dataProperty);
+    _slicer = VolumeSlicer(kameleon.get(), _axis, _cutValue, _dataProperty);
+
+    //_slicer.dimension;
+    //_slicer.origin;
+    //_slizer.axis;
+    //_slizer.cutvalue;
+    //vec<vec<float>> planeData= _slicer.data;
+    //Texture texture = (planeData, TF);
 
 
 }
 void RenderableCutPlane::readh5File() {
-
+    //read file
+    //call loaddatafromH5slice()
+    //create texture
 }
 
-void RenderableCutPlane::loadDataFromSlice() {
-    _slicer = VolumeSlicer(_inputPath, _axis, _cutValue);
+void RenderableCutPlane::loadDataFromCDFSlice() {
+
+
+
 }
 
 void RenderableCutPlane::initializeGL() {

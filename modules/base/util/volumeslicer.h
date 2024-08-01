@@ -25,20 +25,34 @@
 #ifndef __OPENSPACE_MODULE_BASE___VOLUMESLICER___H__
 #define __OPENSPACE_MODULE_BASE___VOLUMESLICER___H__
 
+#include <modules/kameleon/ext/kameleon/src/ccmc/Kameleon.h>
 
 namespace openspace {
-    class VolumeSlicer {
-    public:
-        VolumeSlicer() = default;
-        VolumeSlicer(std::filesystem::path path, std::string axis, std::string cutValue);
-        void getSlicer();
 
-    private:
-        std::vector<std::string> _dataProperyNames;
-        std::vector<glm::vec2> _volumeDimentions;
-        std::vector<std::vector<std::vector<float>>> _data;
+class VolumeSlicer {
+public:
+    VolumeSlicer() = default;
+    VolumeSlicer(
+        std::filesystem::path path,
+        std::string axis,
+        std::string cutValue,
+        std::string dataProperty
+    );
+    VolumeSlicer(
+        ccmc::Kameleon* kameleon,
+        std::string axis,
+        std::string cutValue,
+        std::string dataProperty
+    );
+    void getSlicer();
 
-    };
-}
+private:
+    std::vector<std::string> _dataProperyNames;
+    std::string _dataPropery;
+    glm::vec3 _volumeDimensions;
+    std::vector<std::vector<std::vector<float>>> _data;
+
+};
+}// namespace openspace
 
 #endif //__OPENSPACE_MODULE_BASE___VOLUMESLICER___H__

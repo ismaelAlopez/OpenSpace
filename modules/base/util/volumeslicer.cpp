@@ -24,15 +24,60 @@
 
 #include <modules/base/util/volumeslicer.h>
 
-#include <ghoul/loggin/logmanager.h>
+#include <ghoul/logging/logmanager.h>
+#include <cmath>
 
 namespace openspace {
     constexpr std::string_view _loggerCat = "CutPlaneSlicer";
 
-VolumeSlicer::VolumeSlicer(std::filesystem::path path, std::string axis, int cutValue) {
-    _dataProperyNames;
-    _volumeDimentions;
-    _data;
+VolumeSlicer::VolumeSlicer(std::filesystem::path path, std::string axis, std::string cutValue, std::string dataProperty)
+{
+    _volumeDimensions = glm::vec3(1.f, 1.f, 1.f);
+    _data = { {{0.1f, 0.1f}, {0.2f,0.2f}}, {{0.3f, 0.3f}, {0.4f, 0.4f}} };
+
+}
+VolumeSlicer::VolumeSlicer(ccmc::Kameleon* kameleon, std::string axis, std::string cutValue, std::string dataProperty)
+{
+    //0. tests
+
+    if (!kameleon->doesVariableExist(dataProperty)) {
+        LERROR(std::format("'{}' does not exists in data volume", dataProperty));
+    }
+
+    LWARNING(std::format("Model name: '{}'", kameleon->getModelName()));
+    LWARNING(std::format("Filename: '{}'", kameleon->getCurrentFilename()));
+    int number = kameleon->getNumberOfVariables();
+    LWARNING(std::format("Number of variables: '{}'", number));
+    for (int i = 0; i < number; ++i) {
+        LWARNING(std::format("Variable name: '{}'", kameleon->getVariableName(i)));
+    }
+    int globalnumber = kameleon->getNumberOfGlobalAttributes();
+    LWARNING(std::format("Number of global variables: '{}'", globalnumber));
+    for (int i = 0; i < globalnumber; ++i) {
+        LWARNING(std::format("global variable name: '{}'", kameleon->getGlobalAttributeName(i)));
+    }
+    LWARNING(std::format("Number of variable attributes: '{}'", kameleon->getNumberOfVariableAttributes()));
+    LWARNING(std::format("Current time: '{}'", kameleon->getCurrentTime().toString()));
+
+
+    //1. read data
+    std::vector<float>* data = kameleon->getVariable(dataProperty);
+    int root = sqrt(data->size());
+    for (int i = 0; i < root; ++i) {
+        LWARNING(std::format("'{}', ", (*data)[i]));
+    }
+    //2. figure out which 2d data out of the 3d data is the plane
+
+    //3. create and return texture with a function
+
+
+
+
+
+
+    _volumeDimensions = glm::vec3(1.f, 1.f, 1.f);
+    _data = { {{0.1f, 0.1f}, {0.2f,0.2f}}, {{0.3f, 0.3f}, {0.4f, 0.4f}} };
+
 }
 
 
