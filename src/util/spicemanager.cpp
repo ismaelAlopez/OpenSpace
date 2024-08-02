@@ -36,7 +36,11 @@
 #include <format>
 #include "SpiceUsr.h"
 #include "SpiceZpr.h"
+#include "AbCorr.hpp"
 #include "KernelDatabase.hpp"
+#include "PositionVector.hpp"
+#include "RefFrame.hpp"
+#include "TimeTDB.hpp"
 
 namespace {
     constexpr std::string_view _loggerCat = "SpiceManager";
@@ -108,6 +112,23 @@ SpiceManager::AberrationCorrection::AberrationCorrection(const std::string& iden
 }
 
 SpiceManager::AberrationCorrection::operator const char*() const {
+    switch (type) {
+        case Type::None:
+            return "NONE";
+        case Type::LightTime:
+            return (direction == Direction::Reception) ? "LT" : "XLT";
+        case Type::LightTimeStellar:
+            return (direction == Direction::Reception) ? "LT+S" : "XLT+S";
+        case Type::ConvergedNewtonian:
+            return (direction == Direction::Reception) ? "CN" : "XCN";
+        case Type::ConvergedNewtonianStellar:
+            return (direction == Direction::Reception) ? "CN+S" : "XCN+S";
+        default:
+            throw ghoul::MissingCaseException();
+    }
+}
+
+SpiceManager::AberrationCorrection::operator std::string () const {
     switch (type) {
         case Type::None:
             return "NONE";
@@ -618,35 +639,54 @@ double SpiceManager::ephemerisTimeFromDate(const std::string& timeString) const 
 }
 
 double SpiceManager::ephemerisTimeFromDate(const char* timeString) const {
-    double et = 0.0;
-    str2et_c(timeString, &et);
-    if (failed_c()) {
-        throwSpiceError(std::format("Error converting date '{}'", timeString));
+    ZoneScoped;
+
+    if (rand() % 2 == 0) {
+        ZoneScopedN("SPICE2-TimeTDB");
+        return spice2::TimeTDB(std::string(timeString)).getTDB();
     }
-    return et;
+    else {
+        ZoneScopedN("SPICE1-str2et_c");
+        double et = 0.0;
+        str2et_c(timeString, &et);
+        if (failed_c()) {
+            throwSpiceError(std::format("Error converting date '{}'", timeString));
+        }
+        return et;
+    }
 }
 
 std::string SpiceManager::dateFromEphemerisTime(double ephemerisTime, const char* format)
 {
-    constexpr int BufferSize = 128;
-    std::array<char, BufferSize> Buffer;
-    std::memset(Buffer.data(), char(0), BufferSize);
+    ZoneScoped;
 
-    timout_c(ephemerisTime, format, BufferSize, Buffer.data());
-    if (failed_c()) {
-        throwSpiceError(std::format(
-            "Error converting ephemeris time '{}' to date with format '{}'",
-            ephemerisTime, format
-        ));
+    if (rand() % 2 == 0) {
+        ZoneScopedN("c-SPICE2-TimeTDB.toString");
+        spice2::TimeTDB t = spice2::TimeTDB(ephemerisTime);
+        return t.toString(format);
     }
-    if (Buffer[0] == '*') {
-        // The conversion failed and we need to use et2utc
-        constexpr int SecondsPrecision = 3;
-        et2utc_c(ephemerisTime, "C", SecondsPrecision, BufferSize, Buffer.data());
+    else {
+        ZoneScopedN("c-SPICE1-timout_c");
+        constexpr int BufferSize = 128;
+        std::array<char, BufferSize> Buffer;
+        std::memset(Buffer.data(), char(0), BufferSize);
+
+        timout_c(ephemerisTime, format, BufferSize, Buffer.data());
+        if (failed_c()) {
+            throwSpiceError(std::format(
+                "Error converting ephemeris time '{}' to date with format '{}'",
+                ephemerisTime, format
+            ));
+        }
+        if (Buffer[0] == '*') {
+            // The conversion failed and we need to use et2utc
+            constexpr int SecondsPrecision = 3;
+            et2utc_c(ephemerisTime, "C", SecondsPrecision, BufferSize, Buffer.data());
+        }
+
+
+        return std::string(Buffer.data());
     }
-
-
-    return std::string(Buffer.data());
 }
 
 glm::dvec3 SpiceManager::targetPosition(const std::string& target,
@@ -655,6 +695,8 @@ glm::dvec3 SpiceManager::targetPosition(const std::string& target,
                                         AberrationCorrection aberrationCorrection,
                                         double ephemerisTime, double& lightTime) const
 {
+    ZoneScoped;
+
     ghoul_assert(!target.empty(), "Target is not empty");
     ghoul_assert(!observer.empty(), "Observer is not empty");
     ghoul_assert(!referenceFrame.empty(), "Reference frame is not empty");
@@ -675,23 +717,68 @@ glm::dvec3 SpiceManager::targetPosition(const std::string& target,
         }
     }
     else if (targetHasCoverage && observerHasCoverage) {
-        glm::dvec3 position = glm::dvec3(0.0);
-        spkpos_c(
-            target.c_str(),
-            ephemerisTime,
-            referenceFrame.c_str(),
-            aberrationCorrection,
-            observer.c_str(),
-            glm::value_ptr(position),
-            &lightTime
-        );
-        if (failed_c()) {
-            throwSpiceError(std::format(
-                "Error getting position from '{}' to '{}' in frame '{}' at time '{}'",
-                target, observer, referenceFrame, ephemerisTime
-            ));
+        if (rand() % 2 == 0) {
+            glm::dvec3 newPosition;
+            double lt;
+            {
+                ZoneScopedN("SPICE2-PositionVector");
+
+                spice2::PositionVector p = spice2::PositionVector(
+                    spice2::Body(target),
+                    spice2::TimeTDB(ephemerisTime),
+                    spice2::RefFrame(referenceFrame),
+                    spice2::AbCorr(aberrationCorrection),
+                    spice2::Body(observer)
+                );
+
+                lt = p.getLightTime().value();
+
+                newPosition.x = p[0];
+                newPosition.y = p[1];
+                newPosition.z = p[2];
+            }
+
+            //// Correctness checks
+            //glm::dvec3 position = glm::dvec3(0.0);
+            //spkpos_c(
+            //    target.c_str(),
+            //    ephemerisTime,
+            //    referenceFrame.c_str(),
+            //    aberrationCorrection,
+            //    observer.c_str(),
+            //    glm::value_ptr(position),
+            //    &lightTime
+            //);
+
+            //if (lt != lightTime) {
+            //    throw "Incorrect light time";
+            //}
+            //if (newPosition != position) {
+            //    throw "Incorrect position";
+            //}
+
+            return newPosition;
         }
-        return position;
+        else {
+            ZoneScopedN("SPICE1-spkpos_c");
+            glm::dvec3 position = glm::dvec3(0.0);
+            spkpos_c(
+                target.c_str(),
+                ephemerisTime,
+                referenceFrame.c_str(),
+                aberrationCorrection,
+                observer.c_str(),
+                glm::value_ptr(position),
+                &lightTime
+            );
+            if (failed_c()) {
+                throwSpiceError(std::format(
+                    "Error getting position from '{}' to '{}' in frame '{}' at time '{}'",
+                    target, observer, referenceFrame, ephemerisTime
+                ));
+            }
+            return position;
+        }
     }
     else if (targetHasCoverage) {
         // observer has no coverage, so we try getting position from the reverse
@@ -915,31 +1002,48 @@ glm::dmat3 SpiceManager::positionTransformMatrix(const std::string& sourceFrame,
                                                  const std::string& destinationFrame,
                                                  double ephemerisTime) const
 {
+    ZoneScoped;
+
     ghoul_assert(!sourceFrame.empty(), "sourceFrame must not be empty");
     ghoul_assert(!destinationFrame.empty(), "destinationFrame must not be empty");
 
-    glm::dmat3 result = glm::dmat3(1.0);
-    pxform_c(
-        sourceFrame.c_str(),
-        destinationFrame.c_str(),
-        ephemerisTime,
-        reinterpret_cast<double(*)[3]>(glm::value_ptr(result))
-    );
+    if (rand() % 2 == 0) {
+        spice2::Matrix33 newResult;
+        {
+            ZoneScopedN("SPICE2-getPositionTransformation");
+            newResult = spice2::RefFrame(sourceFrame).getPositionTransformation(
+                spice2::RefFrame(destinationFrame),
+                spice2::TimeTDB(ephemerisTime)
+            );
+        }
 
-    if (failed_c()) {
-        throwSpiceError("");
+        glm::dmat3 r = glm::make_mat3(newResult.data());
+        return glm::transpose(r);
     }
-    const SpiceBoolean success = !(failed_c());
-    reset_c();
-    if (!success) {
-        result = getEstimatedTransformMatrix(
-            sourceFrame,
-            destinationFrame,
-            ephemerisTime
+    else {
+        ZoneScopedN("SPICE1-pxform_c");
+        glm::dmat3 result = glm::dmat3(1.0);
+        pxform_c(
+            sourceFrame.c_str(),
+            destinationFrame.c_str(),
+            ephemerisTime,
+            reinterpret_cast<double(*)[3]>(glm::value_ptr(result))
         );
-    }
 
-    return glm::transpose(result);
+        if (failed_c()) {
+            throwSpiceError("");
+        }
+        const SpiceBoolean success = !(failed_c());
+        reset_c();
+        if (!success) {
+            result = getEstimatedTransformMatrix(
+                sourceFrame,
+                destinationFrame,
+                ephemerisTime
+            );
+        }
+        return glm::transpose(result);
+    }
 }
 
 glm::dmat3 SpiceManager::positionTransformMatrix(const std::string& sourceFrame,

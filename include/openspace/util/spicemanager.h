@@ -48,7 +48,8 @@
 #include "SpiceUsr.h"
 #include "SpiceZpr.h"
 #include "Spice.hpp"
-//#include "spice2.hpp"
+#include "TimeTDB.hpp"
+ //#include "spice2.hpp"
 //#include "Spice.hpp"
 
 #ifdef __clang__
@@ -145,6 +146,14 @@ public:
          * \return The string representation of this Aberration correction
          */
         operator const char*() const;
+
+        /**
+         * Returns the string representation of this Aberration Correction.
+         *
+         * \return The string representation of this Aberration correction
+         */
+        operator std::string() const;
+
 
         /// The type of aberration correction
         Type type = Type::None;
@@ -577,21 +586,32 @@ public:
     void dateFromEphemerisTime(double ephemerisTime, char* outBuf, int bufferSize,
         const char (&format)[N] = "YYYY MON DDTHR:MN:SC.### ::RND") const
     {
+        ZoneScoped;
+
         static_assert(N != 0, "Format must not be empty");
         ghoul_assert(N >= bufferSize - 1, "Buffer size too small");
 
-        timout_c(ephemerisTime, format, bufferSize, outBuf);
-        if (failed_c()) {
-            throwSpiceError(std::format(
-                "Error converting ephemeris time '{}' to date with format '{}'",
-                    ephemerisTime, format
-            ));
+        if (rand() % 2 == 0) {
+            ZoneScopedN("h-SPICE2-TimeTDB.toString");
+            spice2::TimeTDB t = spice2::TimeTDB(ephemerisTime);
+            std::string s = t.toString(format);
+            std::memcpy(outBuf, s.data(), s.size());
         }
+        else {
+            ZoneScopedN("h-SPICE1-timout_c");
+            timout_c(ephemerisTime, format, bufferSize, outBuf);
+            if (failed_c()) {
+                throwSpiceError(std::format(
+                    "Error converting ephemeris time '{}' to date with format '{}'",
+                    ephemerisTime, format
+                ));
+            }
 
-        if (outBuf[0] == '*') {
-            // The conversion failed and we need to use et2utc
-            constexpr int SecondsPrecision = 3;
-            et2utc_c(ephemerisTime, "C", SecondsPrecision, bufferSize, outBuf);
+            if (outBuf[0] == '*') {
+                // The conversion failed and we need to use et2utc
+                constexpr int SecondsPrecision = 3;
+                et2utc_c(ephemerisTime, "C", SecondsPrecision, bufferSize, outBuf);
+            }
         }
     }
 
