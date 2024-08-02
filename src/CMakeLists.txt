@@ -502,7 +502,7 @@ if (APPLE)
 endif ()
 
 set_openspace_compile_settings(openspace-core)
-target_link_libraries(openspace-core PUBLIC Ghoul spice external-curl)
+target_link_libraries(openspace-core PUBLIC Ghoul spice spice2 external-curl)
 
 # Just in case, create the bin directory
 add_custom_command(
