@@ -80,6 +80,8 @@ struct [[codegen::Dictionary(RenderableCutPlane)]] Parameters {
     std::string axis;
     // [[codegen::verbatim(CutValueInfo.description)]]
     float cutValue;
+    // Resolution of the cut plane. Default is 2 by 2 pixels
+    std::optional<glm::vec2> resolution;
     // [[codegen::verbatim(ColorTablePathsInfo.description)]]
     std::optional<std::vector<std::string>> colorTablePaths;
     // [[codegen::verbatim(ColorTableRangesInfo.description)]]
@@ -106,12 +108,14 @@ RenderableCutPlane::RenderableCutPlane(const ghoul::Dictionary& dictionary)
     const Parameters p = codegen::bake<Parameters>(dictionary);
 
     _inputPath = absPath(p.input);
-    _dataProperty = p.dataProperty;
     //dataproperties will need an onchange
-    _axis = p.axis;
+    _dataProperty = p.dataProperty;
     //so will axis
-    _cutValue = p.cutValue;
+    _axis = p.axis;
     // and cutvalue, if not a full plane equation is entered some other way
+    _cutValue = p.cutValue;
+
+    _resolution = p.resolution.value_or(_resolution);
 
     if (p.colorTablePaths.has_value()) {
         _colorTablePaths = p.colorTablePaths.value();

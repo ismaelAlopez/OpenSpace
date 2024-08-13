@@ -88,9 +88,9 @@ private:
     // What data property to render
     std::string _dataProperty;
     properties::OptionProperty _dataProperties;
-
     std::string _axis;
     std::string _cutValue;
+    glm::vec2 _resolution = { 2,2 };
     std::vector<std::string> _colorTablePaths;
     std::vector<glm::vec2> _colorTableRanges;
 

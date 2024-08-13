@@ -56,16 +56,26 @@ VolumeSlicer::VolumeSlicer(ccmc::Kameleon* kameleon, std::string axis, std::stri
     for (int i = 0; i < globalnumber; ++i) {
         LWARNING(std::format("global variable name: '{}'", kameleon->getGlobalAttributeName(i)));
     }
-    LWARNING(std::format("Number of variable attributes: '{}'", kameleon->getNumberOfVariableAttributes()));
+    int globalVariableAtrributes = kameleon->getNumberOfVariableAttributes();
+    LWARNING(std::format("Number of variable attributes: '{}'", globalVariableAtrributes));
+    for (int i = 0; i < globalVariableAtrributes; ++i) {
+        LWARNING(std::format("global variable attributes name: '{}'", kameleon->getVariableAttributeName(i)));
+    }
     LWARNING(std::format("Current time: '{}'", kameleon->getCurrentTime().toString()));
 
 
     //1. read data
-    std::vector<float>* data = kameleon->getVariable(dataProperty);
-    int root = sqrt(data->size());
-    for (int i = 0; i < root; ++i) {
+    //int root = sqrt(data->size());
+    //for (int i = 0; i < root; ++i) {
+    //    LWARNING(std::format("'{}', ", (*data)[i]));
+    //}
+    //std::vector<float>* data = kameleon->getVariable(dataProperty);
+
+    std::vector<float>* data = kameleon->getVariable("x");
+    for (int i = 0; i < data->size(); ++i) {
         LWARNING(std::format("'{}', ", (*data)[i]));
     }
+
     //2. figure out which 2d data out of the 3d data is the plane
 
     //3. create and return texture with a function

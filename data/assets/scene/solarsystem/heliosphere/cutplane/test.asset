@@ -7,10 +7,11 @@ local cutplane = {
   Renderable = {
     Type = "RenderableCutPlane",
     Input = path,
-    Size = {100000, 100000},
+    Size = {100000, 100000}, --in meters
+    Dimentions ={5000, 5000}
+    DataProperty = "rho"
     Axis = "x",
     CutValue = 0,
-    DataProperty = "rho"
   },
   GUI = {
     Name = "Volume Slicer",
