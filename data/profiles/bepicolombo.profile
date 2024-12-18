@@ -3,7 +3,8 @@
     "base",
     "base_keybindings",
     "scene/solarsystem/missions/bepicolombo/bepicolombo",
-    "scene/solarsystem/planets/earth/earth"
+    "scene/solarsystem/planets/earth/earth",
+    "scene/solarsystem/missions/bepicolombo/mission"
   ],
   "camera": {
     "altitude": 17000000.0,

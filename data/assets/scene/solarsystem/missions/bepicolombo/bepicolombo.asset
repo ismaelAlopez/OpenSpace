@@ -1,6 +1,5 @@
 asset.require("./model")
 asset.require("./trails")
-asset.require("./mission")
 asset.require("./fov")
 
 

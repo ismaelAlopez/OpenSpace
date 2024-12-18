@@ -10,7 +10,6 @@ local model = asset.resource({
   Version = 4
 })
 
-
 local Apollo17Lem = {
   Identifier = "Apollo17Lem",
   Parent = moonAsset.Moon.Identifier,

@@ -1,0 +1,60 @@
+local Mission = {
+  Identifier = "Apollo",
+  Name = "Las Misiones Apollo", -- Translated
+  Image = "https://solarsystem.nasa.gov/system/downloadable_items/2962_s65-55202.jpg",
+  Description = "Apollo fue el programa de la NASA que resultó en que los astronautas estadounidenses realizaran un total de 11 vuelos espaciales y caminaran sobre la luna. Los primeros cuatro vuelos probaron el equipo utilizado en el programa Apollo. Seis de los otros siete vuelos aterrizaron en la luna. El primer vuelo Apollo ocurrió en 1968. El primer aterrizaje en la luna tuvo lugar en 1969. El último aterrizaje lunar fue en 1972. Un total de 12 astronautas caminaron sobre la luna. Los astronautas realizaron investigaciones científicas allí. Estudiaron la superficie lunar. Recogieron rocas lunares para traerlas de vuelta a la Tierra.", -- Translated
+  Actions = { "os.apollo.moon.ToggleKaguyaLayer", "os.apollo.ToggleMoonShading", "os.apollo.ShowInsignias", "os.apollo.HideInsignias" },
+  Milestones = {
+    {
+      Name = "Primera imagen del amanecer de la Tierra", -- Translated
+      Date = "1968 DIC 24 12:20:00",
+      Image = "https://www.nasa.gov/sites/default/files/thumbnails/image/apollo_8_earthrise_1968_as08-14-2383.jpg",
+      Description = "El 24 de diciembre de 1968, los astronautas de Apollo 8, Frank Borman, Jim Lovell y Bill Anders, se convirtieron en los primeros humanos en orbitar la Luna y los primeros en presenciar el magnífico espectáculo llamado 'Amanecer de la Tierra'. Mientras la nave espacial rotaba, Anders tomó esta icónica imagen mostrando la Tierra ascendiendo sobre el horizonte lunar." -- Translated
+    },
+    {
+      Name = "Un gran salto para la humanidad", -- Translated
+      Date = "1969 JUL 20 02:56:00",
+      Description = "A las 02:56 UTC, Neil Armstrong está listo para plantar el primer pie humano en otro mundo. Con más de medio billón de personas viendo por televisión, baja de la escalera y proclama: 'Es un pequeño paso para un hombre, un gran salto para la humanidad'. Aldrin lo acompaña poco después y ofrece una descripción simple pero poderosa de la superficie lunar: 'magnífica desolación'. Exploran la superficie durante dos horas y media, recogiendo muestras y tomando fotografías. Dejan una bandera estadounidense, un parche en honor a la tripulación caída del Apollo 1 y una placa en una de las patas del Eagle. Dice: 'Aquí los hombres de la Tierra pusieron el primer pie en la luna. Julio de 1969 d.C. Venimos en paz para toda la humanidad.'", -- Translated
+      Image = "https://www.nasa.gov/sites/default/files/images/464487main_AS11-40-5886_full.jpg"
+    }
+  },
+  Phases = {
+    {
+      Name = "Vuelo Apollo 8", -- Translated
+      TimeRange = { Start = "1968 DIC 21 12:51:00", End = "1968 DIC 27 15:51:42" },
+      Description = "Apollo 8 fue la primera nave espacial tripulada en orbitar la Luna con éxito y regresar a la Tierra. La tripulación de Apollo 8 también fue la primera en presenciar y fotografiar un amanecer terrestre.", -- Translated
+      Image = "https://upload.wikimedia.org/wikipedia/commons/4/47/Ap8-S68-56531.jpg"
+    },
+    {
+      Name = "Vuelo Apollo 11", -- Translated
+      TimeRange = { Start = "1969 JUL 16 13:32:00", End = "1969 JUL 24 16:50:35" },
+      Description = "Apollo 11 fue la primera misión en aterrizar en la luna. La tripulación estaba formada por Neil Armstrong, Comandante, Edwin E. 'Buzz' Aldrin Jr., Piloto del Módulo Lunar, y Michael Collins, Piloto del Módulo de Comando", -- Translated
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/s69-31739orig.jpg",
+      Link = "https://www.nasa.gov/mission_pages/apollo/missions/apollo11.html",
+      Actions = { "os.apollo11.setup.LandingSite", "os.apollo.DisableApolloSites" }
+    },
+    {
+      Name = "Vuelo Apollo 15", -- Translated
+      TimeRange = { Start = "1971 JUL 26 13:34:00", End = "1971 AGO 07 20:45:53" },
+      Description = "Apollo 15 fue la primera de las misiones Apollo capaz de una estancia más larga en la luna y mayor movilidad en la superficie. La tripulación fue la primera en usar el Vehículo Lunar Roving.", -- Translated
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width/public/thumbnails/image/apollo_15_moon_landing_29_eva3_irwin_w_us_flag_as15-88-11866hr.jpg?itok=oA8gldMa"
+    },
+    {
+      Name = "Vuelo Apollo 17", -- Translated
+      TimeRange = { Start = "1972 DIC 07 05:33:00", End = "1972 DIC 19 19:54:58" },
+      Description = "Apollo 17 fue la última misión en la que los humanos viajaron a la Luna. Se distinguió por una mayor capacidad de hardware, mayor capacidad de carga científica y el uso del Vehículo Lunar Roving a batería.", -- Translated
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/as17-147-22526_orig_1.jpg",
+      Actions = { "os.apollo17.setup.LandingSite", "os.apollo.DisableApolloSites" }
+    }
+  }
+}
+
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

@@ -1,0 +1,77 @@
+local Mission = {
+  Identifier = "Artemis",
+  Name = "Artemis",
+  TimeRange = { Start = "2022 NOV 16 06:47:00", End = "2022 DEC 11 17:40:30" },
+  Image = "https://www.nasa.gov/sites/default/files/thumbnails/image/em1_patch_final.png",
+  Description = "Con las misiones de Artemis, la NASA llevará a la primera mujer y a la primera persona de color a la Luna, utilizando tecnologías innovadoras para explorar más de la superficie lunar que nunca antes. Colaboraremos con socios comerciales e internacionales y estableceremos la primera presencia a largo plazo en la Luna. Luego, utilizaremos lo que aprendamos en y alrededor de la Luna para dar el siguiente gran salto: enviar a los primeros astronautas a Marte.",
+  Milestones = {
+    {
+      Name = "Lanzamiento de la misión",
+      Date = "2022 NOV 16 06:47:44",
+      Image = "https://www.nasa.gov/sites/default/files/thumbnails/image/sls_rocket.jpg",
+      Description = "Tras el exitoso lanzamiento del Sistema de Lanzamiento Espacial (SLS) de la NASA, el cohete más potente del mundo, la nave espacial Orion de la agencia se dirige a la Luna como parte del programa Artemis. Transportando una Orion no tripulada, el SLS despegó para su debut en la prueba de vuelo a la 1:47 a.m. EST del miércoles desde la Plataforma de Lanzamiento 39B en el Centro Espacial Kennedy de la NASA en Florida. El lanzamiento es la primera etapa de una misión en la que se planea que Orion viaje aproximadamente 40,000 millas más allá de la Luna y regrese a la Tierra en un período de 25.5 días. Conocida como Artemis I, la misión es una parte crítica del enfoque de exploración de la NASA de la Luna a Marte, en el que la agencia explora para el beneficio de la humanidad. Es una prueba importante para la agencia antes de enviar astronautas en la misión Artemis II.",
+      Link = "https://www.nasa.gov/press-release/liftoff-nasa-s-artemis-i-mega-rocket-launches-orion-to-moon"
+    },
+    {
+      Name = "Acercamiento más cercano a la Luna",
+      Date = "2022 NOV 21 12:57:00",
+      Description = "Una porción del lado opuesto de la Luna parece más grande justo más allá de la nave espacial Orion en esta imagen tomada en el sexto día de la misión Artemis I por una cámara en la punta de uno de los paneles solares de Orion. La nave espacial entró en la esfera de influencia lunar el domingo 20 de noviembre, convirtiendo a la Luna, en lugar de la Tierra, en la principal fuerza gravitacional que actúa sobre la nave espacial. El lunes 21 de noviembre, se acercó a solo 80 millas de la superficie lunar, el acercamiento más cercano de la misión no tripulada Artemis I, antes de moverse hacia una órbita retrógrada distante alrededor de la Luna. El punto más oscuro visible cerca del centro de la imagen es el Mare Orientale.",
+      Image = "https://blogs.nasa.gov/artemis/wp-content/uploads/sites/303/2022/11/art001e000269-1200x900.jpg",
+      Link = "https://blogs.nasa.gov/artemis/2022/11/21/artemis-i-flight-day-six-orion-performs-lunar-flyby-closest-outbound-approach/"
+    },
+    {
+      Name = "Distancia máxima de la Tierra",
+      Date = "2022 NOV 28 00:00:00",
+      Description = "La nave espacial Orion no tripulada de la NASA alcanzó una distancia máxima de casi 270,000 millas de la Tierra durante la prueba de vuelo Artemis I antes de comenzar su viaje de regreso hacia la Tierra. Orion capturó imágenes de la Tierra y la Luna juntas desde su órbita lunar distante, incluida esta imagen tomada desde la cámara de uno de los paneles solares de la nave espacial.",
+      Image = "https://www.nasa.gov/sites/default/files/thumbnails/image/orion_day_13_advisory.jpg"
+    },
+    {
+      Name = "Aterrizaje de Orion",
+      Description = "La nave espacial Orion de la NASA para la misión Artemis I aterrizó en el Océano Pacífico después de una misión de 25.5 días a la Luna.",
+      Image = "https://www.nasa.gov/sites/default/files/thumbnails/image/orion_splashdown_image.jpg",
+      Date = "2022 DEC 11 17:40:30"
+    }
+  },
+  Phases = {
+    {
+      Name = "Lanzamiento",
+      TimeRange = { Start = "2022 NOV 16 06:47:44", End = "2022 NOV 16 10:09:20" }
+    },
+    {
+      Name = "Fase de desplazamiento hacia afuera",
+      TimeRange = { Start = "2022 NOV 17 00:00:00", End = "2022 NOV 20 00:00:00" },
+      Description = "A medida que Orion continúa su camino desde la órbita terrestre hacia la Luna, será impulsado por un módulo de servicio proporcionado por la Agencia Espacial Europea, que suministrará el sistema principal de propulsión y energía de la nave espacial (así como aire y agua para los astronautas en futuras misiones). Orion pasará por los cinturones de radiación de Van Allen, volará cerca de la constelación de satélites del Sistema de Posicionamiento Global (GPS) y por encima de los satélites de comunicación en la órbita terrestre. Para comunicarse con el control de misión en Houston, Orion cambiará del sistema de satélites de seguimiento y datos de la NASA y se comunicará a través de la Red del Espacio Profundo. Desde aquí, Orion continuará demostrando su diseño único para navegar, comunicarse y operar en un entorno del espacio profundo."
+    },
+    {
+      Name = "Órbita lunar",
+      TimeRange = { Start = "2022 NOV 21 00:00:00", End = "2022 DEC 04 00:00:00" },
+      Phases = {
+        {
+          Name = "Transito a órbita retrógrada distante",
+          TimeRange = { Start = "2022 NOV 21 00:00:00", End = "2022 NOV 24 00:00:00" },
+        },
+        {
+          Name = "Órbita retrógrada distante",
+          TimeRange = { Start = "2022 NOV 25 00:00:00", End = "2022 NOV 30 00:00:00" },
+        },
+        {
+          Name = "Salida de la órbita retrógrada distante",
+          TimeRange = { Start = "2022 DEC 01 00:00:00", End = "2022 DEC 04 00:00:00" },
+        }
+      }
+    },
+    {
+      Name = "Tránsito de regreso",
+      TimeRange = { Start = "2022 DEC 06 07:29:00", End = "2022 DEC 11 17:40:30" }
+    }
+  }
+}
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)
+

@@ -6,7 +6,8 @@
     "scene/solarsystem/planets/earth/earth",
     "scene/solarsystem/planets/earth/satellites/satellites",
     "scene/solarsystem/missions/artemis/artemis",
-    "scene/solarsystem/missions/artemis/toggle_trail"
+    "scene/solarsystem/missions/artemis/toggle_trail",
+    "scene/solarsystem/missions/artemis/mission"
   ],
   "camera": {
     "aim": "",

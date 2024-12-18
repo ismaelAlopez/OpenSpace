@@ -1,0 +1,88 @@
+local Mission = {
+  Identifier = "BepiColombo",
+  Name = "BepiColombo",
+  Image = "https://scifleet.esa.int/downloads/bepi_mcs/bepicolombo.png",
+  Description = [[BepiColombo es la primera misión europea a Mercurio. Fue lanzada en octubre de 2018 en un viaje hacia el planeta terrestre más pequeño y menos explorado de nuestro Sistema Solar. Su llegada a Mercurio está prevista para diciembre de 2025, donde soportará temperaturas superiores a los 350 °C y recopilará datos durante una misión nominal de un año.  La misión consta de dos naves espaciales: 1. Orbitador Planetario de Mercurio (MPO), 2. Orbitador Magnetosférico de Mercurio (MMO). BepiColombo es una misión conjunta entre la ESA y la Agencia de Exploración Aeroespacial de Japón (JAXA), ejecutada bajo la dirección de la ESA.]],
+  TimeRange = {
+    Start = "2018 OCT 20 01:45:00",
+    End = "2028 MAY 01 12:00:00" -- Preliminary time
+  },
+  Milestones = {
+    {
+      Name = "Lanzamiento",
+      Date = "2018 OCT 20 01:45:00"
+    },
+    {
+      Name = "Sobrevuelo de la Tierra",
+      Date = "2020 APR 10 04:25"
+    },
+    {
+      Name = "Primer sobrevuelo de Venus",
+      Date = "2020 OCT 15 03:58:00"
+    },
+    {
+      Name = "Segundo sobrevuelo de Venus",
+      Date = "2021 AUG 10 13:51:00"
+    },
+    {
+      Name = "Primer sobrevuelo de Mercurio",
+      Date = "2021 OCT 01 23:34:41"
+    },
+    {
+      Name = "Segundo sobrevuelo de Mercurio",
+      Date = "2022 JUN 23 09:44:00"
+    },
+    {
+      Name = "Tercer sobrevuelo de Mercurio",
+      Date = "2023 JUN 19 19:34:00"
+    },
+    {
+      Name = "Cuarto sobrevuelo de Mercurio",
+      Date = "2024 SEP 05 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "Quinto sobrevuelo de Mercurio",
+      Date = "2024 DEC 02 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "Sexto sobrevuelo de Mercurio",
+      Date = "2025 JAN 09 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "Inserción en órbita de Mercurio",
+      Date = "2025 DEC 05 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "MPO en su órbita científica final",
+      Date = "2026 MAR 14 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "Fin de misión nominal",
+      Date = "2027 MAY 01 12:00:00" -- Preliminary time
+    },
+    {
+      Name = "Fin de misión extendida",
+      Date = "2028 MAY 01 12:00:00" -- Preliminary time
+    }
+  },
+  Phases = {}
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)
+
+
+
+asset.meta = {
+  Name = "BepiColombo Mission",
+  Description = "This asset contains the mission profile information for the BepiColombo mission. The data in this file has been taken from https://www.esa.int/Science_Exploration/Space_Science/BepiColombo/BepiColombo_factsheet",
+  Author = "OpenSpace Team",
+  URL = "http://openspaceproject.com",
+  License = "MIT license"
+}

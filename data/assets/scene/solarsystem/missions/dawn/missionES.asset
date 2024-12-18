@@ -1,0 +1,42 @@
+local Mission = {
+  Identifier = "Dawn",
+  Name = "Dawn",
+  Image = "https://photojournal.jpl.nasa.gov/jpegMod/PIA19375_modest.jpg",
+  TimeRange = { Start = "2007 SEP 07 11:34:00", End = "2018 OCT 30 00:00:00" },
+  Description = "Dawn fue la primera nave espacial en orbitar dos destinos extraterrestres (Vesta y Ceres). Cuando Dawn llegó a Vesta, se convirtió en la primera nave espacial en orbitar un objeto en el cinturón de asteroides principal. Cuando Dawn llegó a Ceres, fue la primera nave espacial en visitar un planeta enano.",
+  Milestones = {
+    {
+      Name = "Lanzamiento",
+      Date = "2007 SEP 07 11:34:00",
+      Image = "https://www.nasa.gov/images/content/190740main_dawnlaunch_330.jpg"
+    },
+    {
+      Name = "Sobrevuelo de Marte",
+      Date = "2009 FEB 18 00:27:58",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/pj41_full.gif",
+      Description = "El 24 de diciembre de 1968, los astronautas de Apolo 8, Frank Bormanm Jim Lovell y Bill Anderson se conviertieron en los primeros humanos en orbitar la luna y en los primeros en presenciar la magnífica vista llamada Earthrise. Mientras la nave espacial estaba en proceso de rotación, Anders tomó esta icónica fotografía mostrando la Tierra elevándose sobre el horizonte lunar."
+    }
+  },
+  Phases = {
+    {
+      Name = "Órbita de Vesta",
+      TimeRange = { Start = "2011 JUL 16 04:47:00", End = "2012 SEP 05 06:26:00" },
+      Image = "https://solarsystem.nasa.gov/rails/active_storage/disk/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdDVG9JYTJWNVNTSXBZV1UxWWpJd016a3ROVFUxT1MwME1UZzFMVGxoTWpZdFkyUXpZVEk1T0RKak1UazFCam9HUlZRNkVHUnBjM0J2YzJsMGFXOXVTU0pQYVc1c2FXNWxPeUJtYVd4bGJtRnRaVDBpVUVsQk1UVTJOemhmYUdseVpYTXVhbkJuSWpzZ1ptbHNaVzVoYldVcVBWVlVSaTA0SnlkUVNVRXhOVFkzT0Y5b2FYSmxjeTVxY0djR093WlVPaEZqYjI1MFpXNTBYM1I1Y0dWSklnOXBiV0ZuWlM5cWNHVm5CanNHVkRvUmMyVnlkbWxqWlY5dVlXMWxPZ3BzYjJOaGJBPT0iLCJleHAiOm51bGwsInB1ciI6ImJsb2Jfa2V5In19--046d49cb8eb78db2f7202c135bc43c590c15f213/PIA15678_hires.jpg",
+      Description = "Dawn orbitó Vesta durante más de un año, desde julio de 2011 hasta septiembre de 2012. Su investigación confirmó que Vesta es el progenitor de los meteoritos HED, los cuales Dawn conectó con el gran basín del polo sur de Vesta, una conexión cósmica invaluable entre las muestras en mano y un evento singular en un pequeño planeta."
+    },
+    {
+      Name = "Órbita de Ceres",
+      TimeRange = { Start = "2015 MAR 06 12:29:00", End = "2018 OCT 30 00:00:00" },
+      Image = "https://solarsystem.nasa.gov/rails/active_storage/disk/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdDVG9JYTJWNVNTSXBZekk1TTJFMk5tVXRaR1F3TmkwME5XSmpMVGcwWVRNdE5qY3daREJoWkRNek1tWTJCam9HUlZRNkVHUnBjM0J2YzJsMGFXOXVTU0pEYVc1c2FXNWxPeUJtYVd4bGJtRnRaVDBpVUVsQk1qRXdOemt1YW5Cbklqc2dabWxzWlc1aGJXVXFQVlZVUmkwNEp5ZFFTVUV5TVRBM09TNXFjR2NHT3daVU9oRmpiMjUwWlc1MFgzUjVjR1ZKSWc5cGJXRm5aUzlxY0dWbkJqc0dWRG9SYzJWeWRtbGpaVjl1WVcxbE9ncHNiMk5oYkE9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9rZXkifX0=--84aa86325e1ff663ed2382dd4f30967e4c53e5e8/PIA21079.jpg",
+      Description = "Después de su escape de Vesta y su viaje hacia adelante, Dawn entró en órbita alrededor de Ceres en marzo de 2015. Dawn descubrió que el único planeta enano del sistema solar interior era un mundo oceánico donde el agua y el amoníaco reaccionaron con rocas silicatadas. A medida que el océano se congelaba, las sales y otros minerales reveladores se concentraron en depósitos que ahora están expuestos en muchas ubicaciones a través de la superficie. Dawn también encontró compuestos orgánicos en varias ubicaciones de la superficie de Ceres."
+    }
+  } 
+}
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)
