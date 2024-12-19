@@ -4,7 +4,8 @@
     "base_keybindings",
     "scene/solarsystem/missions/newhorizons/dashboard",
     "scene/solarsystem/missions/newhorizons/model",
-    "scene/solarsystem/missions/newhorizons/newhorizons"
+    "scene/solarsystem/missions/newhorizons/newhorizons",
+    "scene/solarsystem/missions/newhorizons/mission"
   ],
   "camera": {
     "aim": "",

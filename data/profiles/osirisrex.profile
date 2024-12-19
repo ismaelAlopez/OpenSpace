@@ -5,6 +5,7 @@
     "scene/solarsystem/missions/osirisrex/dashboard",
     "scene/solarsystem/missions/osirisrex/model",
     "scene/solarsystem/missions/osirisrex/osirisrex",
+    "scene/solarsystem/missions/osirisrex/mission",
     "scene/solarsystem/missions/osirisrex/imageplane"
   ],
   "camera": {

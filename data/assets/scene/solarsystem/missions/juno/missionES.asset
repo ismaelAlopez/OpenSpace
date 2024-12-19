@@ -1,0 +1,48 @@
+local Mission = {
+  Identifier = "Juno",
+  Name = "Juno",
+  Image = "https://upload.wikimedia.org/wikipedia/commons/3/32/Juno_mission_insignia.svg",
+  Description = "El 5 de agosto de 2011, la nave espacial Juno de la NASA se embarcó en un viaje de 5 años al planeta más grande de nuestro sistema solar: el gigante de gas Júpiter.Su misión: investigar debajo de las densas nubes del planeta y responder preguntas sobre el origen y la evolución de Júpiter, nuestro sistema solar y los planetas gigantes en general en todo el cosmos. Juno llegó a Júpiter el 4 de julio de 2016, después de un viaje de 5 años y 1.7 mil millones de millas, y se instaló en una órbita polar de 53 días que se extiende desde justo por encima de las cima de las nubes de Júpiter hasta los tramos exteriores de la magnetosfera joviana.",
+  Milestones = {
+    {
+      Name = "Llegada a Júpiter",
+      Date = "2016 JUL 04 00:00:00",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/pj41_full.gif" ,
+      Description = "El 24 de diciembre de 1968, el Apolo 8 astronautas Frank Borman, Jim Lovell y Bill Anders se convirtieron en los primeros humanos en orbitar la luna, y el primero en presenciar la magnífica vista llamada 'Earthrise'.Como la nave espacial estaba en el proceso de rotación, Anders tomó esta imagen icónica que muestra la tierra que se elevaba sobre el horizonte de la luna."
+    }
+  },
+  Phases = {
+    {
+      Name = "Viaje a Júpiter",
+      TimeRange = { Start = "2011 AUG 05 16:25:00", End = "2016 JUL 04 00:00:00" },
+      Description = "Juno llegó a Júpiter el 4 de julio de 2016, después de un viaje de cinco años y 1,740 millones de millas, y se instaló en una órbita polar de 53 días que se extiende desde justo por encima de las cimas de la nubes de Júpiter hasta los tramos exteriores de la magnetosfera joviana.",
+      Image = "https://d2pn8kiwq2w21t.cloudfront.net/original_images/jpegPIA22946.jpg",
+      Phases = {
+        {
+          Name = "Maniobras de espacio profundo",
+          TimeRange = { Start = "2012 AUG 01 00:00:00", End = "2012 SEP 30 00:00:00"}
+        }
+      }
+    },
+    {
+      Name = "Misión",
+      TimeRange = { Start = "2016 JUL 04 00:00:00", End = "2021 AUG 01 00:00:00" },
+      Description = "Los descubrimientos de Juno han revolucionado nuestra comprensión de Júpiter y la formación del sistema solar.Durante las 35 órbitas de Júpiter de la Misión Prime, Juno recopiló más de tres terabits (375 gigabytes) de datos científicos y proporcionó vistas deslumbrantes de Júpiter y sus satélites, todos procesados ​​por científicos ciudadanos con la primera cámara de la NASA dedicada al alcance público.Los muchos descubrimientos de Juno han cambiado nuestra visión de la atmósfera e interior de Júpiter, revelando una capa meteorológica atmosférica que se extiende mucho más allá de sus nubes y un interior profundo con un núcleo de elementos pesados ​​diluidos o 'confusos'.Cerca del final de la misión principal, a medida que evolucionó la órbita de la nave espacial, los flyby de la luna Ganymede iniciaron la transición de Juno a un explorador de sistema joviano completo.",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/pia22692_hires.jpg"
+    },
+    {
+      Name = "Misión extendida",
+      TimeRange = { Start = "2021 AUG 01 00:00:00", End = "2025 Sep 01 00:00:00" },
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/pia25015.jpg"
+    }
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

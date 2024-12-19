@@ -1,0 +1,126 @@
+local Mission = {
+  Identifier = "NewHorizons",
+  Name = "Nuevos Horizontes",
+  Phases = {
+    {
+      Name = "Fase de crucero",
+      TimeRange = { Start = "2006 JAN 19 00:00:00", End = "2015 JAN 15 00:00:00" },
+      Phases = {
+        {
+          Name = "Sobrevuelo de Júpiter",
+          TimeRange = { Start = "2007 FEB 28 00:00:00", End = "2007 FEB 28 23:59:59" }
+        },
+        {
+          Name = "Verificación anual 1",
+          TimeRange = { Start = "2007 SEP 01 00:00:00", End = "2007 NOV 30 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 2",
+          TimeRange = { Start = "2008 JUL 01 00:00:00", End = "2008 AUG 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 3",
+          TimeRange = { Start = "2009 JUL 01 00:00:00", End = "2009 AUG 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 4",
+          TimeRange = { Start = "2010 MAY 01 00:00:00", End = "2010 JUL 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 5",
+          TimeRange = { Start = "2011 MAY 01 00:00:00", End = "2011 JUL 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 6",
+          TimeRange = { Start = "2012 MAY 01 00:00:00", End = "2012 JUL 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 7",
+          TimeRange = { Start = "2013 MAY 01 00:00:00", End = "2013 AUG 31 00:00:00" }
+        },
+        {
+          Name = "Verificación anual 8 y campaña de navegación óptica 1",
+          TimeRange = { Start = "2014 JUN 01 00:00:00", End = "2014 AUG 31 00:00:00" }
+        },
+        {
+          Name = "Despertar final de hibernación",
+          TimeRange = { Start = "2014 DEC 06 00:00:00", End = "2014 DEC 06 23:59:59" }
+        }
+      }
+    },
+    {
+      Name = "Encuentro con Plutón/Fase de aproximación 1",
+      TimeRange = { Start = "2015 JAN 15 00:00:00", End = "2015 APR 01 00:00:00" },
+      Phases = {
+        {
+          Name = "Campaña de navegación óptica 2",
+          TimeRange = { Start = "2015 JAN 25 00:00:00", End = "2015 APR 01 00:00:00" }
+        }
+      }
+    },
+    {
+      Name = "Encuentro con Plutón/Fase de aproximación 2",
+      TimeRange = { Start = "2015 APR 01 00:00:00", End = "2015 JUN 01 00:00:00" },
+      Phases = {
+        {
+          Name = "Las mejores imágenes de Plutón",
+          TimeRange = { Start = "2015 MAY 01 00:00:00", End = "2015 JUN 01 00:00:00" }
+        }
+      }
+    },
+    {
+      Name = "Encuentro con Plutón/Fase de aproximación 3",
+      TimeRange = { Start = "2015 JUN 01 00:00:00", End = "2015 JUL 15 00:00:00" },
+      Phases = {
+        {
+          Name = "Aproximación más cercana a Plutón",
+          TimeRange = { Start = "2015 JUL 14 11:49:57", End = "2015 JUL 14 11:49:58" }
+        },
+        {
+          Name = "Aproximación más cercana a Caronte",
+          TimeRange = { Start = "2015 JUL 14 12:03:50", End = "2015 JUL 14 12:03:51" }
+        },
+        {
+          Name = "Ocultación Plutón-Sol",
+          TimeRange = { Start = "2015 JUL 14 12:51:25", End = "2015 JUL 14 12:52:00" }
+        },
+        {
+          Name = "Ocultación Plutón-Tierra",
+          TimeRange = { Start = "2015 JUL 14 12:52:27", End = "2015 JUL 14 12:53:00" }
+        },
+        {
+          Name = "Ocultación Caronte-Sol",
+          TimeRange = { Start = "2015 JUL 14 14:17:40", End = "2015 JUL 14 14:18:00" }
+        },
+        {
+          Name = "Ocultación Caronte-Tierra",
+          TimeRange = { Start = "2015 JUL 14 14:20:00", End = "2015 JUL 14 14:21:00" }
+        }
+      }
+    },
+    {
+      Name = "Fase de salida 1",
+      TimeRange = { Start = "2015 JUL 15 00:00:00", End = "2015 AUG 01 00:00:00" }
+    },
+    {
+      Name = "Fase de salida 2",
+      TimeRange = { Start = "2015 AUG 01 00:00:00", End = "2015 OCT 01 00:00:00" }
+    },
+    {
+      Name = "Fase de salida 3",
+      TimeRange = { Start = "2015 OCT 01 00:00:00", End = "2016 JAN 01 00:00:00" }
+    },
+    {
+      Name = "Fin de la reproducción de datos",
+      TimeRange = { Start = "2016 OCT 01 00:00:00", End = "2016 DEC 01 00:00:00" }
+    }
+  }
+}
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

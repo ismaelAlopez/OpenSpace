@@ -1,0 +1,67 @@
+local Mission = {
+  Identifier = "Juice",
+  Name = "Juice",
+  Image = "https://www.esa.int/var/esa/storage/images/science_exploration/space_science/juice/23388092-2-eng-GB/Juice_pillars.jpg",
+  Description = "El Explorador de Lunas Heladas de Júpiter de la ESA, Juice, realizará observaciones detalladas del gigante planeta gaseoso y sus tres grandes lunas oceánicas: Ganímedes, Calisto y Europa, utilizando un conjunto de instrumentos de teledetección, geofísicos y de investigación in situ. La misión caracterizará estas lunas tanto como objetos planetarios como posibles hábitats, explorará en profundidad el complejo entorno de Júpiter y estudiará el sistema más amplio de Júpiter como un arquetipo de gigantes gaseosos en el Universo.",
+  Milestones = {
+    {
+      Name = "Primer sobrevuelo de la Tierra",
+      Date = "2024 AUG 01 00:00:00"
+    },
+    {
+      Name = "Sobrevuelo de Venus",
+      Date = "2025 AUG 01 00:00:00"
+    },
+    {
+      Name = "Segundo sobrevuelo de la Tierra",
+      Date = "2026 SEP 01 00:00:00"
+    },
+    {
+      Name = "Tercer sobrevuelo de la Tierra",
+      Date = "2029 JAN 01 00:00:00"
+    },
+    {
+      Name = "Arrival at Jupiter",
+      Date = "2031 JUL 01 00:00:00"
+    },
+    {
+      Name = "Europa flyby 1",
+      Date = "2032 JUL 02 16:21:51"
+    },
+    {
+      Name = "Europa flyby 2",
+      Date = "2032 JUL 16 22:18:22"
+    }
+  },
+  Phases = {
+    {
+      Name = "Journey to Jupiter",
+      TimeRange = { Start = "2023 APR 05 16:25:00", End = "2031 JUL 01 00:00:00" }
+    },
+    {
+      Name = "Jupiter orbit",
+      TimeRange = { Start = "2031 JUL 01 00:00:00", End = "2033 NOV 01 00:00:00" },
+      Phases = {
+        {
+          Name = "Jupiter inclined phase - Callisto flybys",
+          TimeRange = { Start = "2032 AUG 01 00:00:00", End = "2033 AUG 01 00:00:00" },
+          Description = "El Explorador de Lunas Heladas de Júpiter de la ESA, Juice, tendrá su primer vistazo de la antigua y craterada Calisto en junio de 2032, pasando rápidamente junto a la luna 21 veces antes de realizar un sobrevuelo final en 2034. Durante estos encuentros cercanos, Juice recopilará valiosos tesoros científicos sobre la luna.",
+
+        }
+      }
+    },
+    {
+      Name = "Ganymede orbit",
+      TimeRange = { Start = "2034 NOV 01 00:00:00", End = "2035 SEP 01 00:00:00" },
+      Description = "El monstruoso y misterioso Ganímedes es el objetivo principal del Explorador de Lunas Heladas de Júpiter (Juice) de la ESA y la luna más grande del Sistema Solar, ¡incluso más grande que Plutón y Mercurio! Aunque Juice realizará sobrevuelos de las tres lunas galileanas más grandes de Júpiter (Ganímedes, Europa y Calisto), Ganímedes es la única luna que la nave espacial orbitará. Al hacerlo, Juice se convertirá en la primera nave espacial en orbitar una luna distinta a la nuestra, permitiéndonos ver el mundo joviano bajo una nueva luz. Ganímedes es también la única luna en el Sistema Solar que genera su propio campo magnético. Juice explorará varios temas clave: el enigmático campo magnético de Ganímedes, su océano oculto, su núcleo complejo, su contenido de hielo y su corteza, sus interacciones con su entorno local y el de Júpiter, su actividad pasada y presente, y si la luna podría ser -o haber sido alguna vez- un entorno habitable."
+    }
+  }
+}
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

@@ -1,0 +1,187 @@
+--[[
+
+References:
+[1]     Source :    http://www.asteroidmission.org/about-mission/
+        Date :      2016-08-23
+        Comment :   Precision is not even month - it just defines the overall mission approach
+
+[2]     Source :    http://brinktest.lpl.arizona.edu/mission/
+        Date :      2016-08-23
+        Comment :   Data taken from text descriptions of the visualizations. There is a little time bar up
+                    in the upper right corner.
+
+[3]     Source :    SPICE kernel data coverage
+        Date :      2016-08-23
+        Comment :   The spice data is split up into across different files. These files
+                    seems to represent different phases. A script was used to extract the
+                    SPICE coverage from all .bc files and use the names of the files as
+                    mission names and associate the name with the time coverage.
+                    Script used: support/mission/ckbrief2mission.js
+
+[4]     Source :    Visual interpretation of SPICE kernel data coverage
+        Date :      2016-08-23
+        Comment :   Based on observation of the visualized spice data through OpenSpace.
+
+[5]     Source :    https://www.asteroidmission.org/asteroid-operations/
+        Date :      2023-03-30
+        Comment :   Text about the phases
+
+https://www.asteroidmission.org/wp-content/uploads/2018/10/SPP-Approach-Poster-10-03-18.pdf
+--]]
+
+local Mission = {
+  Identifier = "OsirisRex",
+  Name = "OSIRIS-REx",
+  Description = "Lanzada el 8 de septiembre de 2016, la nave espacial Origins, Spectral Interpretation, Resource Identification, Security-Regolith Explorer (OSIRIS-REx) viajó a un asteroide cercano a la Tierra llamado Bennu (anteriormente 1999 RQ36) y recogió una muestra de rocas y material de la superficie que regresará a la Tierra en 2023. La misión ayudará a los científicos a investigar cómo se formaron los planetas y cómo comenzó la vida, además de mejorar nuestra comprensión de los asteroides que podrían impactar la Tierra.",
+  Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/osiris-rex-mission-logo12_copy.png",
+  Actions = { "os.osirisrex.AimAtBennu", "os.osirisrex.SetLaunchTime", "os.osirisrex.LookImageCapture" },
+  Phases = {
+	-- All 1-level phases based on [1]
+    {
+      Name = "Crucero de ida",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/28929096574_85a647dc8e_o.jpg",
+      Phases = {
+	-- Phases from [4]
+        {
+          Name = "Prelanzamiento", TimeRange = { Start = "2016 SEP 03 01:00:00", End = "2016 SEP 08 23:05:05" }
+        },
+        {
+          Name = "Lanzamiento",
+          TimeRange = { Start = "2016 SEP 08 23:05:05", End = "2016 SEP 08 23:09:00" }
+        },
+        {
+          Name = "Órbita Terrestre",
+          TimeRange = { Start = "2016 SEP 08 23:09:00", End = "2016 SEP 08 23:45:00" }
+        },
+        {
+          Name = "Órbita Solar",
+          TimeRange = { Start = "2016 SEP 08 23:45:00", End = "2018 SEP 01 00:00:00" },
+          Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/ega_1ms_mapcam_color_corrected_0.png",
+          Description = "Una imagen compuesta a color de la Tierra tomada el 22 de septiembre por la cámara MapCam de la nave espacial OSIRIS-REx de la NASA. Esta imagen se tomó pocas horas después de que la nave completara su Asistencia Gravitacional de la Tierra a una distancia de aproximadamente 106,000 millas (170,000 kilómetros). MapCam es parte del Conjunto de Cámaras OSIRIS-REx (OCAMS) operado por la Universidad de Arizona. En esta imagen se pueden ver el Océano Pacífico y varias masas de tierra familiares, incluida Australia en la parte inferior izquierda, y Baja California y el suroeste de Estados Unidos en la parte superior derecha. Las marcas verticales oscuras en la parte superior de la imagen son causadas por tiempos de exposición cortos (menos de tres milisegundos). Se requieren tiempos de exposición cortos para capturar una imagen de un objeto tan brillante como la Tierra, pero no se anticipa que esto ocurra con un objeto tan oscuro como el asteroide Bennu, que la cámara fue diseñada para fotografiar. Fecha de toma: 22 de septiembre de 2017",
+          Phases = {
+            {
+              Name = "Asistencia Gravitacional Próxima", TimeRange = { Start = "2017 JAN 22 15:00:00", End = "2017 SEP 22 15:00:00" }
+            },
+            {
+              Name = "Asistencia Gravitacional", TimeRange = { Start = "2017 SEP 22 15:00:00", End = "2017 SEP 22 21:00:00" }
+            }
+          }
+        }
+      }
+    },
+    {
+      Name = "Operaciones del Asteroide",
+      Phases = {
+	-- Nested Levels from [3]
+        {
+          Name = "Aproximación",
+          Description = "La fase de Aproximación comenzó el 17 de agosto de 2018, cuando la nave espacial estaba a unos 1.2 millones de millas (2 millones de km) de Bennu, y continuó hasta que la nave llegó al asteroide el 3 de diciembre de 2018. Los objetivos principales de la Aproximación fueron localizar visualmente Bennu por primera vez, estudiar el área circundante en busca de posibles peligros y recolectar suficiente imagen de Bennu para que los científicos pudieran generar un modelo detallado de la forma del asteroide, asignar un sistema de coordenadas y comprender su estado de rotación.",
+          TimeRange = { Start = "2018-AUG-17 00:00:00.000", End = "2018-DEC-31 01:34:21.183" },
+          Image = "https://www.nasa.gov/sites/default/files/styles/full_width_feature/public/thumbnails/image/lbt-orex-1049-loop-gif.gif",
+          Phases = {
+            {
+              Name = "Observación de Pluma de Polvo",
+              Description = "Búsqueda de plumas de polvo y gas que se originen de la superficie del asteroide, y caracterización de sus regiones de origen y densidades de columna. La información sobre la presencia y ubicación de plumas de polvo y gas es necesaria para evaluar la seguridad, comprender la historia geológica y dinámica del asteroide, e informar sobre la selección de sitios de muestreo.",
+              TimeRange = { Start = "2018-SEP-11 21:31:01.183", End = "2018-SEP-12 02:18:41.183" },
+              Image = "https://www.asteroidmission.org/wp-content/uploads/2018/09/MapCamDustSearch-1.jpg"
+            },
+            {
+              Name = "Curva de Luz",
+              TimeRange = { Start = "2018-OCT-09 21:50:48.182", End = "2018-OCT-10 02:33:16.183" }
+            },
+            {
+              Name = "Búsqueda de Satélites Naturales",
+              TimeRange = { Start = "2018-OCT-26 19:38:30.183", End = "2018-OCT-27 00:22:34.183" }
+            },
+            {
+              Name = "Función de Fase",
+              TimeRange = { Start = "2018-OCT-12 21:42:26.183", End = "2018-OCT-13 02:24:54.183" }
+            },
+            {
+              Name = "Modelo de Forma",
+              TimeRange = { Start = "2018-NOV-09 11:02:59.183", End = "2018-NOV-16 15:51:33.183" }
+            },
+            {
+              Name = "Modelo de Forma Forzado 4x4",
+              TimeRange = { Start = "2018-NOV-17 11:03:54.183", End = "2018-NOV-17 15:51:34.183" }
+            },
+            {
+              Name = "Mapa Espectral",
+              TimeRange = { Start = "2018-OCT-30 20:44:53.183", End = "2018-OCT-31 01:34:21.183" }
+            }
+          }
+        },
+        {
+          Name = "Encuesta Preliminar",
+          Description = "La fase de Encuesta Preliminar comenzó con la llegada de la nave espacial a Bennu el 3 de diciembre de 2018, y marcó la primera vez que la nave espacial OSIRIS-REx operó alrededor del asteroide. La nave realizó un total de cinco pasajes sobre el polo norte, el ecuador y el polo sur a una distancia de 4.3 millas (7 km). Los objetivos principales de la Encuesta Preliminar fueron estimar la masa de Bennu, refinar el modelo del estado de rotación del asteroide, y generar un modelo global de la forma con una resolución de 75 cm.",
+          Image = "https://www.asteroidmission.org/wp-content/uploads/2018/05/Prelim-Survey-for-Web.jpg",
+          Phases = {
+            {
+              Name = "Fase 1 MapCamOLA",
+              TimeRange = { Start = "2018-NOV-20 01:13:12.183", End = "2018-NOV-20 06:13:04.183" }
+            },
+            {
+              Name = "Fase 1 OLA",
+              TimeRange = { Start = "2018-NOV-19 22:30:00.184", End = "2018-NOV-19 23:19:28.183" }
+            },
+            {
+              Name = "Fase 2 OLA",
+              TimeRange = { Start = "2018-NOV-23 22:19:34.184", End = "2018-NOV-23 23:19:26.183" }
+            },
+            {
+              Name = "Fase 3 OLA",
+              TimeRange = { Start = "2018-NOV-24 00:48:38.184", End = "2018-NOV-24 01:38:06.184" }
+            },
+            {
+              Name = "Fase 4 OLA",
+              TimeRange = { Start = "2018-NOV-27 22:29:58.184", End = "2018-NOV-27 23:19:26.183" }
+            },
+            {
+              Name = "Fase 1 PolyCam",
+              TimeRange = { Start = "2018-NOV-19 12:00:33.183", End = "2018-NOV-19 16:46:25.183" }
+            },
+            {
+              Name = "Fase 2 PolyCam",
+              TimeRange = { Start = "2018-NOV-20 07:10:26.183", End = "2018-NOV-20 12:10:18.183" }
+            },
+            {
+              Name = "Fase 3 PolyCam",
+              TimeRange = { Start = "2018-NOV-23 11:51:29.184", End = "2018-NOV-23 16:51:21.184" }
+            },
+            {
+              Name = "Fase 4 PolyCam",
+              TimeRange = { Start = "2018-NOV-24 07:17:39.184", End = "2018-NOV-24 12:03:31.184" }
+            },
+            {
+              Name = "Fase 5 PolyCam",
+              TimeRange = { Start = "2018-NOV-27 12:00:20.184", End = "2018-NOV-27 16:46:12.184" }
+            },
+            {
+              Name = "Fase 6 PolyCam",
+              TimeRange = { Start = "2018-NOV-28 07:10:35.183", End = "2018-NOV-28 12:10:27.183" }
+            }
+          }
+        }
+      }
+    -- End of [3] 
+    },
+    {
+      Name = "Tiempo de Respaldo",
+      TimeRange = { Start = "2020 JAN 01 00:00:00", End = "2021 JAN 01 00:00:00" }
+    },
+    {
+      Name = "Crucero de Regreso",
+      TimeRange = { Start = "2021 JAN 01 00:00:00", End = "2023 SEP 20 00:00:00" }
+    }
+ -- End of [1]
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

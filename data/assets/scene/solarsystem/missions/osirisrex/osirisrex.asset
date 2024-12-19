@@ -6,4 +6,3 @@ asset.require("scene/solarsystem/sun/marker")
 
 asset.require("./script_schedule")
 asset.require("./actions")
-asset.require("./mission")

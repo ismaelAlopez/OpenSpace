@@ -5,19 +5,19 @@ local Mission = {
   Description = "ESA's Jupiter Icy Moons Explorer, Juice, will make detailed observations of the giant gas planet and its three large ocean-bearing moons - Ganymede, Callisto and Europa - with a suite of remote sensing, geophysical, and in situ instruments. The mission will characterize these moons as both planetary objects and possible habitats, explore Jupiter's complex environment in depth, and study the wider Jupiter system as an archetype for gas giants across the Universe.",
   Milestones = {
     {
-      Name = "Earth flyby 1",
+      Name = "Primer sobrevuelo de la Tierra",
       Date = "2024 AUG 01 00:00:00"
     },
     {
-      Name = "Venus flyby",
+      Name = "Sobrevuelo de Venus",
       Date = "2025 AUG 01 00:00:00"
     },
     {
-      Name = "Earth flyby 2",
+      Name = "Segundo sobrevuelo de la Tierra",
       Date = "2026 SEP 01 00:00:00"
     },
     {
-      Name = "Earth flyby 3",
+      Name = "Tercer sobrevuelo de la Tierra",
       Date = "2029 JAN 01 00:00:00"
     },
     {
