@@ -1,0 +1,39 @@
+local Mission = {
+  Identifier = "Perseverance",
+  Name = "Eventos de Marte 2020 Perseverance en Marte",
+  Phases = {
+    {
+      Name = "Primer Foto a Color",
+      TimeRange = { Start = "2021 FEB 18" },
+      Image = "http://data.openspaceproject.com/missions/perseverance/Perseverance's_First_Full-Color_Look_at_Mars.png"
+    },
+    {
+      Name = "Primer Objetivo de Estudio",
+      TimeRange = { Start = "2021 FEB 22" },
+      Image = "http://data.openspaceproject.com/missions/perseverance/PIA24484-MarsPerseveranceRover-FirstStudyTarget-20210222.jpg"
+    },
+    {
+      Name = "Prueba de Conducción",
+      TimeRange = { Start = "2021 MAR 07" },
+      Image = "http://data.openspaceproject.com/missions/perseverance/PIA23729-MarsPerseveranceRover-DriveTest-20210307.jpg"
+    },
+    {
+      Name = "Lanzamiento del Helicóptero Ingenuity",
+      TimeRange = { Start = "2021 APR 04" },
+      Image = "http://data.openspaceproject.com/missions/perseverance/Ingenuity_helicopter_first_colour_image.jpg"
+    },
+    {
+      Name = "Primer Vuelo del Helicóptero Ingenuity",
+      TimeRange = { Start = "2021 APR 19" }
+    }
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

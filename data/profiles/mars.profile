@@ -3,6 +3,7 @@
     "base",
     "base_keybindings",
     "scene/solarsystem/missions/insight/edl",
+    "scene/solarsystem/missions/perseverance/mission",
     "scene/solarsystem/missions/perseverance/perseverance"
   ],
   "camera": {

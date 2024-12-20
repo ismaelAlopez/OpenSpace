@@ -1,0 +1,118 @@
+-- Source:  https://solarsystem.nasa.gov/missions/rosetta-philae/in-depth/
+
+local Mission = {
+  Identifier = "Rosetta",
+  Name = "Rosetta",
+  TimeRange = { Start = "2004 MAR 02 00:00:00", End = "2016 SEP 30 00:00:00" },
+  Image = "https://www.cosmos.esa.int/documents/522118/522182/Rosetta_logo.png/cd85878d-2fac-e086-e32a-df0eaee5e505?t=1614026031720",
+  Description = "La misión Rosetta de la ESA fue la primera en encontrarse con un cometa, la primera en seguir a un cometa en su órbita alrededor del Sol y la primera en desplegar un módulo de aterrizaje en la superficie de un cometa. Los cometas son cápsulas del tiempo que contienen material primitivo remanente de la época en que se formaron el Sol y los planetas. Al estudiar el gas, el polvo, la estructura del núcleo y los materiales orgánicos asociados con el cometa, tanto mediante observaciones remotas como in situ, la misión Rosetta está desentrañando la historia y evolución de nuestro Sistema Solar.",
+  Milestones = {
+    {
+      Name = "Lanzamiento",
+      Date = "2004 MAR 02 09:00:00"
+    },
+    {
+      Name = "Primera asistencia gravitacional de la Tierra",
+      Date = "2005 MAR 04 00:00:00",
+      Image = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2005/03/moonrise_above_the_pacific_22_06_utc_4_march_2005/9520996-4-eng-GB/Moonrise_above_the_Pacific_22_06_UTC_4_March_2005_pillars.jpg",
+      Description = "La Luna elevándose sobre el Pacífico, tres minutos antes del punto de mayor acercamiento durante el primer sobrevuelo de la Tierra de Rosetta.",
+      Link = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2015/08/approaching_perihelion_animation/15556093-1-eng-GB/Approaching_perihelion_Animation_pillars.gif"
+    },
+    {
+      Name = "Asistencia gravitacional de Marte",
+      Date = "2007 FEB 25 00:00:00",
+      Description = "El sobrevuelo de Rosetta por Marte es el segundo de cuatro asistencias gravitacionales necesarias para colocar a Rosetta en curso hacia su destino final: el cometa 67P/Churyumov-Gerasimenko. El punto de mayor acercamiento del sobrevuelo ocurrirá a las 01:54 UT, cuando la nave espacial pasará a 250 km por encima de la superficie de Marte..",
+      Image = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2007/02/image_of_mars_seen_by_osiris/10287257-2-eng-GB/Image_of_Mars_seen_by_OSIRIS_pillars.jpg",
+      Link = "https://sci.esa.int/web/rosetta/-/40697-rosetta-mars-swing-by"
+    },
+    {
+      Name = "Segunda asistencia gravitacional de la Tierra",
+      Date = "2007 NOV 13 00:00:00",
+      Description = "A las 20:57 UTC, la nave espacial Rosetta realiza su segundo sobrevuelo de la Tierra, como parte de una serie de asistencias gravitacionales que ponen la nave en un curso de intercepción con el cometa 67P/Churyumov-Gerasimenko."
+    },
+    {
+      Name = "Sobrevuelo del asteroide Steins",
+      Date = "2008 SEP 05 00:00:00",
+      Image = "https://cdn.sci.esa.int/documents/34878/35534/1567217294466-Steins-FlyBy-Mosaic_625.jpg",
+      Description = "Imágenes del asteroide 2867-Steins tomadas por la cámara de ángulo amplio OSIRIS durante el sobrevuelo del 5 de septiembre de 2008. El diámetro efectivo del asteroide es de 5 km, aproximadamente como se predijo. En la parte superior del asteroide se puede ver un gran cráter, de aproximadamente 2 km de tamaño."
+    },
+    {
+      Name = "Tercera asistencia gravitacional de la Tierra",
+      Date = "2009 NOV 13 00:00:00"
+    },
+    {
+      Name = "Sobrevuelo del asteroide Lutetia",
+      Date = "2010 NOV 10 00:00:00",
+      Image = "https://cdn.sci.esa.int/documents/34878/35534/1567216468815-4_closest_approach-0_625.jpg",
+      Description = "Junto con el 2867-Steins, el 21-Lutetia es uno de los dos asteroides objetivo que Rosetta estudiará durante su largo viaje al cometa 67P-Churyumov-Gerasimenko."
+    },
+    {
+      Date = "2014 MAY 07 00:00:00",
+      Name = "Comienzan las maniobras de encuentro"
+    },
+    {
+      Name = "Llegada al cometa",
+      Date = "2014 AUG 06 00:00:00",
+      Image = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2014/08/navcam_animation_6_august/14705553-1-eng-GB/NavCam_animation_6_August_pillars.gif",
+      Description = "Después de diez años, cinco meses y cuatro días viajando hacia nuestro destino, rodeando el Sol cinco veces y recorriendo 6.4 mil millones de kilómetros, estamos encantados de anunciar finalmente que hemos llegado, exclamó Jean-Jacques Dordain, Director General de la ESA."
+    },
+    {
+      Name = "Comienza el mapeo global",
+      Date = "2014 SEP 10 00:00:00",
+      Description = "Después del encuentro, Rosetta comenzará dos meses de mapeo extensivo y recolección de datos."
+    },
+    {
+      Name = "Entrega del aterrizador Philae",
+      Date = "2014 NOV 12 00:00:00",
+      Image = "https://cdn.sci.esa.int/documents/34878/35534/1567216603810-ESA_Rosetta_OSIRIS_NAC_Farewell_Philae_625.jpg",
+      Description = "La cámara de ángulo estrecho OSIRIS de Rosetta capturó esta imagen de despedida del aterrizador Philae después de la separación."
+    },
+    {
+      Name = "Punto de mayor acercamiento al Sol (Perihelion)",
+      Date = "2015 AUG 13 00:00:00",
+      Description = "El perihelion es el punto más cercano que un objeto del Sistema Solar llega al Sol a lo largo de su órbita (el aphelion es el término utilizado para el punto más distante).",
+      Image = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2015/03/comet_s_orbit/15317969-1-eng-GB/Comet_s_orbit_pillars.jpg"
+    },
+    {
+      Name = "Fin de la misión",
+      Date = "2016 SEP 30 00:00:00"
+    }
+  },
+  Phases = {
+    {
+      Name = "Lanzamiento y Crucero",
+      Phases = {
+        {
+          Name = "Lanzamiento",
+          TimeRange = { Start = "2004 MAR 02 07:17:00", End = "2004 MAR 02 09:14:00" }
+        },
+        {
+          Name = "Comisionamiento de Instrumentos",
+          TimeRange = { Start = "2004 MAR 02 09:14:00", End = "2004 JUN 07 00:00:00" },
+          Description = "La nave espacial ya está configurada para su largo 'crucero', con los instrumentos apagados y el Monitor de Radiación Ambiental Estándar (SREM) activado para el monitoreo de la radiación de fondo."
+        },
+        {
+          Name = "Hibernación en el Espacio Profunda",
+          TimeRange = { Start = "2011 JUN 08 00:00:00", End = "2014 JAN 20 10:00:00" },
+          Description = "Operando solo con energía solar, Rosetta fue colocada en un sueño profundo en el espacio mientras viajaba a una distancia de casi 800 millones de km desde el calor del Sol, más allá de la órbita de Júpiter."
+        }
+      }
+    },
+    {
+      Name = "Misión",
+      Image = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2015/08/approaching_perihelion_animation/15556093-1-eng-GB/Approaching_perihelion_Animation_pillars.gif",
+      Link = "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2015/08/approaching_perihelion_animation/15556093-1-eng-GB/Approaching_perihelion_Animation_pillars.gif",
+      Description = "A las 10:00 CET la nave espacial despertó y comenzó los procedimientos post-hibernación, incluyendo comunicaciones con la ESA y la NASA.",
+      TimeRange = { Start = "2014 JAN 20 10:00:00", End = "2016 SEP 30 00:00:00" }
+    }
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)

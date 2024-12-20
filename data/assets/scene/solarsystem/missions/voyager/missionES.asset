@@ -1,0 +1,125 @@
+--voyager/mission.asset
+
+-- Source:  http://pluto.jhuapl.edu/Mission/index.php
+-- Many of the values (especially days of the month if 01 or 30 or 31  and  hh::mm::ss if all 0)
+-- are approximate and need fixing
+
+local Mission = {
+  Identifier = "Voyager",
+  Name = "Voyager",
+  Image = "https://upload.wikimedia.org/wikipedia/commons/8/87/Voyager_-_mission_logo.png",
+  Description = "Las naves gemelas Voyager 1 y 2 están explorando lugares donde nada proveniente de la Tierra ha llegado antes. Continuando su viaje de más de 40 años desde sus lanzamientos en 1977, ambas se encuentran mucho más lejos de la Tierra y del Sol que Plutón. En agosto de 2012, la Voyager 1 realizó la histórica entrada en el espacio interestelar, la región entre las estrellas, llena de material expulsado por la muerte de estrellas cercanas hace millones de años. La Voyager 2 entró en el espacio interestelar el 5 de noviembre de 2018, y los científicos esperan aprender más sobre esta región. Ambas naves todavía envían información científica sobre su entorno a través de la Red de Espacio Profundo (Deep Space Network, o DSN). La misión principal era la exploración de Júpiter y Saturno. Tras realizar una serie de descubrimientos allí —como volcanes activos en la luna Ío de Júpiter y las complejidades de los anillos de Saturno—, la misión se amplió. La Voyager 2 continuó explorando Urano y Neptuno, y sigue siendo la única nave espacial que ha visitado esos planetas exteriores. La misión actual de estas aventureras, la Misión Interestelar Voyager (Voyager Interstellar Mission, o VIM), explorará el borde más externo del dominio del Sol. Y más allá.",
+  Milestones = {
+    {
+      Name = "Encuentro de Voyager 1 con Júpiter",
+      Date = "1979 MAR 05 00:00:00",
+      Description = "La Voyager 1 descubrió un anillo delgado alrededor de Júpiter y dos nuevas lunas jovianas: Thebe y Metis.",
+      Image = "https://voyager.jpl.nasa.gov/assets/images/galleries/approaches/jupiter2.gif"
+    },
+    {
+      Name = "Encuentro de Voyager 2 con Jùpiter",
+      Date = "1979 JUL 09 00:00:00",
+      Description = "Durante la etapa de su viaje a Júpiter, la Voyager 2 exploró el gigante planeta, su magnetosfera y sus lunas con mayor detalle que las naves Pioneer que la precedieron. La Voyager 2 también utilizó Júpiter como trampolín hacia Saturno, empleando la técnica de asistencia gravitacional. La Voyager 2 cumplió con todos sus objetivos. Envió fotos espectaculares de todo el sistema joviano, y películas en time-lapse hechas a partir de sus imágenes de Júpiter mostraron cómo había cambiado el planeta desde la visita de la Voyager 1. Sus imágenes de Ío revelaron cambios en la superficie de la luna y la persistencia de sus erupciones volcánicas. La nave resolvió las líneas que la Voyager 1 había mostrado en Europa, revelando una colección de grietas en una gruesa y notablemente lisa corteza de hielo. También descubrió una decimocuarta luna y reveló un tercer componente en los anillos del planeta.",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width/public/thumbnails/image/voyager_2_jupiter_full_planet_incl_great_red_spot.jpg?itok=lSyZCyab"
+    },
+    {
+      Name = "Encuentro de Voyager 1 con Saturno",
+      Date = "1980 NOV 09 00:00:00",
+      Image = "https://voyager.jpl.nasa.gov/assets/images/galleries/images-voyager-took/saturn/1bg.jpg"
+    },
+    {
+      Name = "Encuentro de Voyager 2 con Saturno",
+      Date = "1981 AUG 25 00:00:00",
+      Description = "La Voyager 2 se convirtió en la tercera nave espacial en visitar Saturno. Nos ofreció otra mirada de cerca a Saturno y sus lunas. Utilizando su fotopolarímetro, un instrumento que había fallado en la Voyager 1, la Voyager 2 pudo observar los anillos del planeta con una resolución mucho mayor y descubrir muchos más anillos delgados. También proporcionó imágenes más detalladas de las rayas y pliegues en los anillos, así como del anillo F y sus lunas pastoras. Finalmente, empleó una maniobra de asistencia gravitacional en Saturno para ayudarla a alcanzar su próximo destino, Urano.",
+      Image = "https://voyager.jpl.nasa.gov/assets/images/galleries/images-voyager-took/saturn/saturn.gif"
+    },
+    {
+      Name = "Encuentro de Voyager 2 con Urano",
+      Date = "1986 JAN 24 00:00:00",
+      Image = "https://solarsystem.nasa.gov/internal_resources/445/",
+      Description = "Después de sus sobrevuelos de Júpiter y Saturno, la Voyager 2 se convirtió en la primera nave espacial en visitar Urano. Hasta ahora, sigue siendo la única nave espacial que ha volado cerca de Urano. El planeta parecía tener pocas características, pero la Voyager 2 encontró evidencia de un océano de agua hirviendo a unos 800 kilómetros (500 millas) debajo de sus nubes. Curiosamente, se descubrió que la temperatura promedio del polo orientado hacia el Sol era la misma que la del ecuador. La Voyager 2 descubrió 10 nuevas lunas, dos nuevos anillos y un campo magnético curiosamente inclinado, más fuerte que el de Saturno. Una asistencia gravitacional en Urano impulsó la nave hacia su próximo destino, Neptuno."
+    },
+    {
+      Name = "Encuentro de Voyager 2 con Neptuno",
+      Date = "1989 AUG 25 00:00:00",
+      Image = "https://solarsystem.nasa.gov/internal_resources/444/",
+      Description = "La Voyager 2 es el único objeto creado por el ser humano que ha volado cerca de Neptuno. En el acercamiento más cercano de todo su recorrido, la nave pasó a menos de 5,000 kilómetros (3,100 millas) por encima de las nubes del planeta. Descubrió cinco lunas, cuatro anillos y una Gran Mancha Oscura que desapareció cuando el Telescopio Espacial Hubble observó Neptuno cinco años después. La luna más grande de Neptuno, Tritón, resultó ser el cuerpo planetario más frío conocido en el sistema solar, con un volcán de hielo de nitrógeno en su superficie."
+    },
+    {
+      Name = "La Misión Interestelar Voyager (Voyager Interstellar Mission, VIM) comenzó oficialmente",
+      Date = "1990 JAN 01 00:00:00",
+      Description = "La Misión Interstelar Voyager (VIM) comenzó oficialmente"
+    },
+    {
+      Name = "El objeto hecho por el ser humano más distante",
+      Date = "1998 FEB 17 00:00:00",
+      Description = "La Voyager 1 se convirtió en el objeto hecho por el ser humano más distante después de superar la Pioneer 10 de la NASA"
+    },
+    {
+      Name = "Alcanzó las 100 unidades astronómicas.",
+      Date = "2006 AUG 16 00:00:00"
+    },
+    {
+      Name = "La Voyager 1 entra en el espacio interestelar",
+      Date = "2012 AUG 01 00:00:00"
+    }
+  },
+  Phases = {
+    {
+      Name = "Lanzamientos",
+      TimeRange = { Start = "1977 AUG 20 00:00:00", End = "1977 SEP 05 00:00:00" },
+      Description ="Ambas naves espaciales Voyager llevan un disco chapado en oro que contiene información sobre su planeta de origen, incluyendo grabaciones de sonidos terrestres, música y saludos en 55 idiomas. También se incluyen instrucciones sobre cómo reproducir el disco.",
+      Image = "https://www.nasa.gov/sites/default/files/styles/full_width/public/thumbnails/image/voyager_golden_record_0.jpg?itok=ujFbQDyF",
+      Phases = {
+        {
+          Name = "Lanzamiento de Voyager 2",
+          TimeRange = { Start = "1977 AUG 20 00:00:00", End = "1977 AUG 20 00:00:00" },
+          Image = "https://solarsystem.nasa.gov/internal_resources/446/"
+        },
+        {
+          Name = "Lanzamiento de Voyager 1",
+          TimeRange = { Start = "1977 SEP 05 00:00:00", End = "1977 SEP 05 00:00:00" }
+        }
+      }
+    },
+    {
+      Name = "Encuentros",
+      TimeRange = { Start = "1979 MAR 05 00:00:00", End = "1989 AUG 25 00:00:00" },
+      Phases = {
+        {
+          Name = "Encuentro de Voyager 1 con Júpiter",
+          TimeRange = { Start = "1979 MAR 05 00:00:00", End = "1979 MAR 05 00:00:00" }
+        },
+        {
+          Name = "Encuentro de Voyager 2 Júpiter",
+          TimeRange = { Start = "1979 JUL 09 00:00:00", End = "1979 JUL 09 00:00:00" }
+        },
+		    {
+          Name = "Encuentro de Voyager 1 con Saturno",
+          TimeRange = { Start = "1980 NOV 09 00:00:00", End = "1980 NOV 09 00:00:00" }
+        },
+        {
+          Name = "Encuentro de Voyager 2 Saturno",
+          TimeRange = { Start = "1981 AUG 25 00:00:00", End = "1981 AUG 25 00:00:00" }
+        },
+        {
+          Name = "Encuentro de Voyager 2 Urano",
+          TimeRange = { Start = "1986 JAN 24 00:00:00", End = "1986 JAN 24 00:00:00" }
+        },
+        {
+          Name = "Encuentro de Voyager 2 con Neptuno",
+          TimeRange = { Start = "1989 AUG 25 00:00:00", End = "1989 AUG 25 00:00:00" }
+        }
+      }
+    }
+  }
+}
+
+
+asset.onInitialize(function()
+  openspace.loadMission(Mission)
+end)
+
+asset.onDeinitialize(function()
+  openspace.unloadMission(Mission)
+end)
