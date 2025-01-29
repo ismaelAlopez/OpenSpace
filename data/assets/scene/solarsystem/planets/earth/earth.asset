@@ -1,14 +1,12 @@
 local transforms = asset.require("./transforms")
 
-
-
 local labelsPath = asset.resource({
   Name = "Earth Labels",
   Type = "HttpSynchronization",
   Identifier = "earth_labels",
   Version = 1
-})
 
+})
 
 -- local EarthEllipsoid = { 6378137.0, 6378137.0, 6356752.314245 }
 local EarthEllipsoid = { 6378137.0, 6378137.0, 6378137.0 }
@@ -101,8 +99,8 @@ local ToggleSatelliteTrails = {
   IsLocal = false
 }
 
-
 asset.onInitialize(function()
+
   openspace.addSceneGraphNode(Earth)
   openspace.addSceneGraphNode(EarthLabel)
 

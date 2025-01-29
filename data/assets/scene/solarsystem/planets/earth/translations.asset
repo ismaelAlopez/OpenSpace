@@ -1,0 +1,22 @@
+local translation = {
+  Identifier = "Translation",
+  en = {
+    ["Earth.GUI.Name"] = "Earth",
+    ["Earth.GUI.Description"] = "Third rock from the Sun",
+    ["EarthLabel.GUI.Name"] = "Earth Label",
+    ["EarthLabel.GUI.Description"] = "Main label for Earth",
+    ["FocusEarth.Name"] = "Focus on Earth",
+    ["ToggleSatelliteTrails.Name"] = "Toggle satellite trails"
+  },
+  es = {
+    ["Earth.GUI.Name"] = "Tierra",
+    ["Earth.GUI.Description"] = "La tercera roca desde el Sol",
+    ["EarthLabel.GUI.Name"] = "Etiqueta de la Tierra",
+    ["EarthLabel.GUI.Description"] = "Etiqueta principal de la Tierra",
+    ["FocusEarth.Name"] = "Enfocar en la Tierra",
+    ["ToggleSatelliteTrails.Name"] = "Alternar senderos de satélites"
+  }
+}
+
+
+asset.export(translation)y

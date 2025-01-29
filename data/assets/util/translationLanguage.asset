@@ -1,0 +1,34 @@
+local translation = {
+  en = {
+    ["Earth.GUI.Name"] = "Earth",
+    ["Earth.GUI.Description"] = "Third rock from the Sun",
+    ["EarthLabel.GUI.Name"] = "Earth Label",
+    ["EarthLabel.GUI.Description"] = "Main label for Earth",
+    ["FocusEarth.Name"] = "Focus on Earth",
+    ["ToggleSatelliteTrails.Name"] = "Toggle satellite trails"
+  },
+  es = {
+    ["Earth.GUI.Name"] = "Tierra",
+    ["Earth.GUI.Description"] = "La tercera roca desde el Sol",
+    ["EarthLabel.GUI.Name"] = "Etiqueta de la Tierra",
+    ["EarthLabel.GUI.Description"] = "Etiqueta principal de la Tierra",
+    ["FocusEarth.Name"] = "Enfocar en la Tierra",
+    ["ToggleSatelliteTrails.Name"] = "Alternar senderos de satélites"
+  }
+}
+currentLanguage = "en"
+
+function GetTranslation(key)
+	return translation[currentLanguage][key] or key
+end
+
+function SetLanguage(language)
+    currentLanguage = language
+    print("Language set to: " .. currentLanguage)
+    ReloadLocalizedData()
+end
+
+function ReloadLocalizedData()
+    print("Reloading localized data for language: " .. currentLanguage)
+
+end
